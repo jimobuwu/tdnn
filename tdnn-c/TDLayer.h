@@ -4,11 +4,13 @@
 #include "TDNeuron.h"
 
 typedef struct TDLayer {
-	struct TDNeuron* neurons;
+	TDNeuron* neurons;
 	int neuronsCount;
+	int delay;					//ÑÓÊ±ÊýÁ¿
+	int inputSize;
 
 } TDLayer;
 
-TDLayer createTDLayer(int neuronsCount);
+TDLayer createTDLayer(int neuronsCount, int delay, int inputSize);
 
 #endif /* TDLAYER_H_ */
