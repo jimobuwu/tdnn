@@ -18,7 +18,9 @@ TDLayer createTDLayer(int neuronsCount, int delay, int inputSize) {
 static void layer_pushFrame(TDLayer *layer, float *input) {
 	// 从第二帧开始前移
 	for (int i = 0; i < layer->delay; ++i) {
-		memcpy(&layer->inputFrames[(i + 1) * layer->inputSize], &layer->inputFrames[i * layer->inputSize], layer->inputSize);
+		memcpy(&layer->inputFrames[(i + 1) * layer->inputSize], 
+			&layer->inputFrames[i * layer->inputSize], 
+			layer->inputSize);
 	}
 
 	// 加入新帧

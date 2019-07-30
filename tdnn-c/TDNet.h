@@ -16,7 +16,6 @@ typedef struct TDNet {
 } TDNet;
 
 TDNet createTDNet();
-//void pushFrame(TDNet *net, float* input, int inputSize);
-void train(TDNet *net, float *trainData);
+float* train(TDNet *net, float *trainData);
 
 #endif  /* TDNET_H_ */
