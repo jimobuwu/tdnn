@@ -27,7 +27,7 @@ static float derivative(float input) {
 	return sigmoidDerivative(input);
 }
 
-float forward(TDNeuron* neuron, float* input) {
+float neuron_forward(TDNeuron* neuron, float* input) {
 	float sum = 0;
 	for (int i = 0; i < neuron->nConnections; ++i) {
 		sum += neuron->weights[i] * input[i];

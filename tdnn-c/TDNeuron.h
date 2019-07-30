@@ -10,7 +10,7 @@ typedef struct TDNeuron {
 }TDNeuron;
 
 TDNeuron createTDNeuron(int nConnections);
-float forward(TDNeuron* neuron, float* input);
+float neuron_forward(TDNeuron* neuron, float* input);
 float *backward(TDNeuron* neuron);
 
 #endif /* TDNEURON_H_ */
