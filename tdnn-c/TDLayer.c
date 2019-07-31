@@ -4,12 +4,20 @@ TDLayer createTDLayer(int neuronsCount, int delay, int inputSize) {
 	TDLayer layer;
 	layer.neuronsCount = neuronsCount;
 	layer.neurons = (TDNeuron*)malloc(sizeof(TDNeuron) * neuronsCount);
+	if (!layer.neurons) {
+		exit(1);
+	}
+
 	for (int i = 0; i < neuronsCount; ++i) {
 		layer.neurons[i] = createTDNeuron((delay + 1) * inputSize);
 	}
 
 	layer.inputFramesSize = (layer.delay + 1) * layer.inputSize;
 	layer.inputFrames = (float*)calloc(layer.inputFramesSize, sizeof(float));
+	if (!layer.inputFrames) {
+		exit(1);
+	}
+
 	layer.inputSize = inputSize;
 
 	return layer;

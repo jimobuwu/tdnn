@@ -81,6 +81,7 @@
     <ClCompile Include="TDNeuron.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Macro.h" />
     <ClInclude Include="TDLayer.h" />
     <ClInclude Include="TDNet.h" />
     <ClInclude Include="TDNeuron.h" />

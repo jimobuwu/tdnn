@@ -5,12 +5,18 @@ TDNeuron createTDNeuron(int nConnections) {
 	TDNeuron neuron;
 	neuron.nConnections = nConnections;
 	neuron.weights = (float*)malloc(sizeof(float) * nConnections);
-	
+	if (!neuron.weights) {
+		exit(1);
+	}
+
 	for (int i = 0; i < nConnections; ++i) {
 		neuron.weights[i] = rand() / ((RAND_MAX + 1.0)); // 0~1随机数
 	}
 
 	neuron.inputs = (float*)malloc(sizeof(float) * nConnections);
+	if (!neuron.inputs) {
+		exit(1);
+	}
 }
 
 static float sigmoid(float input) {
@@ -45,9 +51,12 @@ float neuron_forward(TDNeuron* neuron, float* input) {
 
 // mse, sigmoid的反向传播
 // 迭代过程 https://www.zhihu.com/question/24827633
-float * backward(TDNeuron * neuron, float loss, float learningRate)
+float* backward(TDNeuron * neuron, float loss, float learningRate)
 {
 	float* deltaGradients = (float*)malloc(sizeof(float) * neuron->nConnections);
+	if (!deltaGradients) {
+		exit(1);
+	}
 
 	for (int i = 0; i < neuron->nConnections; ++i) {
 		
