@@ -1,7 +1,7 @@
 #include "TDNeuron.h"
 #include <stdlib.h>
 
-TDNeuron createTDNeuron(int nConnections) {
+TDNeuron createTDNeuron(unsigned int nConnections) {
 	TDNeuron neuron;
 	neuron.nConnections = nConnections;
 	neuron.weights = (float*)malloc(sizeof(float) * nConnections);

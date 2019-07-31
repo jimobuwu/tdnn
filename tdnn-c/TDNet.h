@@ -3,7 +3,7 @@
 
 #include "TDLayer.h"
 
-typedef struct TDNet {	
+typedef struct {	
 	float learningRate;					// 学习率
 	float decayRate;					// 学习率衰减率
 	TDLayer* layers;					// 层数据

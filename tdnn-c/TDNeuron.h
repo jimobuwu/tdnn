@@ -1,7 +1,7 @@
 #ifndef TDNEURON_H_
 #define TDNEURON_H_
 
-typedef struct TDNeuron {
+typedef struct {
 	float *weights;			// 连接的权重参数
 	int nConnections;		// 连接数（权重数）
 	float activation;		// 激活值
@@ -10,7 +10,7 @@ typedef struct TDNeuron {
 
 }TDNeuron;
 
-TDNeuron createTDNeuron(int nConnections);
+TDNeuron createTDNeuron(unsigned int nConnections);
 float neuron_forward(TDNeuron* neuron, float* input);
 float *backward(TDNeuron* neuron, float loss, float learningRate);
 

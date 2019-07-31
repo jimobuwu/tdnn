@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "Macro.h"
+#include <string.h>
 
 TDNet createTDNet() {
 	TDNet net;
@@ -53,13 +54,13 @@ float* train(TDNet *net, float *target) {
 	// 前向
 	for (int i = 0; i < net->layersCount; ++i) {
 		TDLayer *layer = &net->layers[i];
-		double *activation = (float*)malloc(sizeof(float) * layer->neuronsCount);
+		float *activation = (float*)malloc(sizeof(float) * layer->neuronsCount);
 		if (!activation) {
 			fprintf(stderr, "in forward propagation, layer %d malloc activation fail!", i);
 			exit(1);
 		}
 
-		layer_forward(&layer, passData, activation);
+		layer_forward(layer, passData, activation);
 		// 最后一层输出
 		if (i == net->layersCount - 1)
 			memcpy(output, activation, sizeof(float) * layer->neuronsCount);
@@ -91,7 +92,7 @@ float* train(TDNet *net, float *target) {
 		loss[i] = output[i] - target[i];
 	}
 
-	for (int i = net->layersCount - 1; i >= 0; --i) {
+	for (unsigned int i = net->layersCount - 1; i >= 0; --i) {
 		TDLayer *layer = &net->layers[i];		
 		float *errorSum = (float*)calloc(layer->inputFramesSize, sizeof(float));
 		if (!errorSum) {

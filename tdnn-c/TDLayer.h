@@ -3,7 +3,7 @@
 
 #include "TDNeuron.h"
 
-typedef struct TDLayer {
+typedef struct {
 	TDNeuron* neurons;					// 神经元数据
 	unsigned int neuronsCount;			// 神经元数量
 	unsigned int delay;					// 延时数量
@@ -13,7 +13,7 @@ typedef struct TDLayer {
 
 } TDLayer;
 
-TDLayer createTDLayer(int neuronsCount, int delay, int inputSize);
+TDLayer createTDLayer(unsigned int neuronsCount, unsigned int delay, unsigned int inputSize);
 void layer_forward(TDLayer *layer, float* input, float* output);
 
 #endif /* TDLAYER_H_ */
