@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-TDLayer createTDLayer(unsigned int neuronsCount, unsigned int delay, unsigned int inputSize) {
+TDLayer createTDLayer(unsigned int id, unsigned int neuronsCount, unsigned int delay, unsigned int inputSize) {
 	TDLayer layer;
+	layer.id = id;
 	layer.neuronsCount = neuronsCount;
 	layer.neurons = (TDNeuron*)malloc(sizeof(TDNeuron) * neuronsCount);
 
@@ -22,21 +23,20 @@ TDLayer createTDLayer(unsigned int neuronsCount, unsigned int delay, unsigned in
 	if (!layer.inputFrames) {
 		exit(1);
 	}
-
-
+	
 	return layer;
 }
 
 static void layer_pushFrame(TDLayer *layer, float *input) {
 	// 从第二帧开始前移
 	for (unsigned int i = 0; i < layer->delay; ++i) {
-		memcpy(&layer->inputFrames[(i + 1) * layer->inputSize], 
-			&layer->inputFrames[i * layer->inputSize], 
-			layer->inputSize);
+		memcpy(&layer->inputFrames[i * layer->inputSize], 
+			&layer->inputFrames[(i + 1) * layer->inputSize], 
+			sizeof(float) * layer->inputSize);
 	}
 
 	// 加入新帧
-	memcpy(&layer->inputFrames[layer->delay * layer->inputSize], input, layer->inputSize);
+	memcpy(&layer->inputFrames[layer->delay * layer->inputSize], input, sizeof(float) * layer->inputSize);
 }
 
 void layer_forward(TDLayer *layer, float *input, float *output){
