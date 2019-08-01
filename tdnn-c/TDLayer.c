@@ -1,6 +1,7 @@
 #include "TDLayer.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 TDLayer createTDLayer(unsigned int id, unsigned int neuronsCount, unsigned int delay, unsigned int inputSize) {
 	TDLayer layer;
@@ -42,8 +43,12 @@ static void layer_pushFrame(TDLayer *layer, float *input) {
 void layer_forward(TDLayer *layer, float *input, float *output){
 	layer_pushFrame(layer, input);
 
+	if (2 > layer->id)
+		printf("\nhidden layer %d: ", layer->id + 1);
+	
 	for (int i = 0; i < layer->neuronsCount; ++i) {
 		output[i] = neuron_forward(&layer->neurons[i], layer->inputFrames);
+		printf("%.4f ", output[i]);
 	}
 }
 

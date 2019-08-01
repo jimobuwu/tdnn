@@ -5,8 +5,10 @@
 
 
 static void randomInput(float *input) {
+	printf("input: ");
 	for (int i = 0; i < 16; ++i) {
 		input[i] = rand() / (float)RAND_MAX;
+		printf("%f ", input[i]);
 	}
 }
 
@@ -37,10 +39,12 @@ int main() {
 	srand(time(NULL));
 
 	for (int i = 0; i < frames; ++i) {
+		printf("\nframe: %d \n", i + 1);		
 		randomInput(input);
+
 		float* output = forward(&net, input);
-		printf("frame: %d \n", i + 1);
-		printf("output: ");
+		printf("\noutput: ");
+
 		for (int j = 0; j < 3; ++j) {
 			printf("%.4f ", output[j]);			
 		}
