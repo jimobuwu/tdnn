@@ -48,7 +48,8 @@ void layer_forward(TDLayer *layer, float *input, float *output){
 	
 	for (int i = 0; i < layer->neuronsCount; ++i) {
 		output[i] = neuron_forward(&layer->neurons[i], layer->inputFrames);
-		printf("%.4f ", output[i]);
+		if (2 > layer->id)
+			printf("%.4f ", output[i]);
 	}
 }
 

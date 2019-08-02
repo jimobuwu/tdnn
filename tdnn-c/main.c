@@ -2,7 +2,8 @@
 #include "TDNet.h"
 #include <stdlib.h>
 #include <time.h>
-
+#include <sys/time.h>
+#include <stdint.h>
 
 static void randomInput(float *input) {
 	printf("input: ");
@@ -12,8 +13,15 @@ static void randomInput(float *input) {
 	}
 }
 
+long long getMSec() {
+	struct timeval tp;
+	gettimeofday(&tp, NULL);
+	return tp.tv_sec * 1000 + tp.tv_usec / 1000;
+}
+
 int main() {
 	TDNet net = createTDNet();
+	long long begin, end = 0;
 
 	//float input[15][16] = {
 	//	{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16},
@@ -34,10 +42,11 @@ int main() {
 	//};
 
 
-	const int frames = 20;
+	const int frames = 15;
 	float input[16] = { 0.f };
 	srand(time(NULL));
 
+	begin = getMSec();
 	for (int i = 0; i < frames; ++i) {
 		printf("\nframe: %d \n", i + 1);		
 		randomInput(input);
@@ -50,6 +59,8 @@ int main() {
 		}
 		printf("\n");
 	}
-	
+	end = getMSec();
+	printf("\ncost time: %d", end - begin);
+
 	return 0;
 }

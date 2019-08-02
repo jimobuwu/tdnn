@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <omp.h>
 
 TDNeuron createTDNeuron(unsigned int nConnections) {
 	TDNeuron neuron;
@@ -46,6 +47,10 @@ float neuron_forward(TDNeuron* neuron, float* input) {
 	memcpy(neuron->inputs, input, sizeof(float) * neuron->nConnections);
 	
 	float sum = 0;
+
+//#pragma omp parallel
+//#pragma omp for
+
 	for (int i = 0; i < neuron->nConnections; ++i) {
 		sum += neuron->weights[i] * input[i] / 16;
 	}
@@ -66,7 +71,6 @@ float* backward(TDNeuron * neuron, float loss, float learningRate)
 	}
 
 	for (int i = 0; i < neuron->nConnections; ++i) {
-		
 		deltaGradients[i] = loss * neuron->weights[i] * neuron->derivate;		
 		neuron->weights[i] -= learningRate * loss * neuron->inputs[i];
 	}
