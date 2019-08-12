@@ -82,20 +82,21 @@
     <ClCompile Include="TDLayer.c" />
     <ClCompile Include="TDNet.c" />
     <ClCompile Include="TDNeuron.c" />
+    <ClCompile Include="TDUtils.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Macro.h" />
     <ClInclude Include="TDLayer.h" />
     <ClInclude Include="TDNet.h" />
     <ClInclude Include="TDNeuron.h" />
+    <ClInclude Include="TDUtils.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link />
     <ClCompile />
     <ClCompile />
-    <ClCompile>
-      <AdditionalOptions>-fopenmp %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
+    <ClCompile />
+    <ClCompile />
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

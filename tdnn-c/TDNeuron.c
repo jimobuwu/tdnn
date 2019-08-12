@@ -3,13 +3,15 @@
 #include <math.h>
 #include <string.h>
 #include <omp.h>
+#include "TDUtils.h"
 
-TDNeuron createTDNeuron(unsigned int nConnections) {
+TDNeuron createTDNeuron(unsigned int nConnections, unsigned int kernel_w, unsigned int kernel_h) {
 	TDNeuron neuron;
 	neuron.nConnections = nConnections;
 	neuron.weights = (float*)malloc(sizeof(float) * nConnections);
 	neuron.activation = 0.f;
-	neuron.derivate = 0.f;
+	neuron.kernel_w = kernel_w;
+	neuron.kernel_h = kernel_h;
 
 	if (!neuron.weights) {
 		exit(1);
@@ -27,36 +29,36 @@ TDNeuron createTDNeuron(unsigned int nConnections) {
 	return neuron;
 }
 
+static float relu(float input) {
+
+}
+
 static float sigmoid(float input) {
 	return 1.f / (1.f + expf(-input));
 }
 
-static float sigmoidDerivative(float input) {
-	return sigmoid(input) * ( 1 - sigmoid(input));
-}
-
 static float activate(float input) {
-	return sigmoid(input);
+	//return sigmoid(input);
+	return relu(input);
 }
 
-static float derivative(float input) {
-	return sigmoidDerivative(input);
-}
-
-float neuron_forward(TDNeuron* neuron, float* input) {
+float *neuron_forward(TDNeuron* neuron, float* input, unsigned int input_w, unsigned int input_h) {
 	memcpy(neuron->inputs, input, sizeof(float) * neuron->nConnections);
 	
 	float sum = 0;
-
-//#pragma omp parallel
-//#pragma omp for
-
-	for (int i = 0; i < neuron->nConnections; ++i) {
-		sum += neuron->weights[i] * input[i] / 16;
-	}
 	
+	/*for (int i = 0; i < neuron->nConnections; ++i) {
+		sum += neuron->weights[i] * input[i] / 16;
+	}*/
+	
+	unsigned int fm_size = 0;
+	float* fm = getConv(input, input_w, input_h, neuron->weights, neuron->kernel_w, neuron->kernel_h, 1, 1, VALID, 0, 0, &fm_size);
+	for (int i = 0; i < fm_size; ++i) {
+
+	}
+
+
 	neuron->activation = activate(sum);
-	neuron->derivate = derivative(sum);
 
 	return neuron->activation;
 }
@@ -70,6 +72,7 @@ float* backward(TDNeuron * neuron, float loss, float learningRate)
 		exit(1);
 	}
 
+#pragma omp parallel for
 	for (int i = 0; i < neuron->nConnections; ++i) {
 		deltaGradients[i] = loss * neuron->weights[i] * neuron->derivate;		
 		neuron->weights[i] -= learningRate * loss * neuron->inputs[i];

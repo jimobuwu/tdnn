@@ -10,9 +10,10 @@ typedef struct {
 	unsigned int layersCount;			// 网络层数
 	float* inputFrames;					// 延时窗口多帧数据
 	unsigned int inputFramesSize;		// 延时窗口内数据的总量
-	unsigned int inputDelay;			// 输入延时
-	unsigned int inputSize;				// 输入一帧的尺寸
-	
+	unsigned int input_w;				// 输入数据宽度
+	unsigned int input_h;				// 输入数据高度
+	unsigned int input_c;				// 输入数据通道数
+
 } TDNet;
 
 TDNet createTDNet();

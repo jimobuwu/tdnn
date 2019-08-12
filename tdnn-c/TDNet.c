@@ -3,21 +3,20 @@
 #include <stdio.h>
 #include "Macro.h"
 #include <string.h>
+#include <omp.h>
 
 TDNet createTDNet() {
 	TDNet net;
 	net.layersCount = 3;
 	net.learningRate = 0.01f;
 	net.decayRate = 0.9f;
-	net.inputDelay = 2;
-	net.inputSize = 16;
 	net.layers = (TDLayer*)malloc(sizeof(TDLayer) * net.layersCount);
 	if (!net.layers) {
 		fprintf(stderr, "createTDNet malloc layers fail!");
 		exit(1);
 	}
 
-	net.inputFramesSize = (net.inputDelay + 1) * net.inputSize;
+	//net.inputFramesSize = (net.inputDelay + 1) * net.inputSize;
 	net.inputFrames = (float*)calloc(net.inputFramesSize, sizeof(float));
 	if (!net.inputFrames) {
 		fprintf(stderr, "createTDNet malloc inputFrames fail!");
@@ -26,12 +25,6 @@ TDNet createTDNet() {
 
 	net.layers[0] = createTDLayer(0, 8, 2, 16); // 隐藏层1 3 * 16 -> 8
 	net.layers[1] = createTDLayer(1, 3, 4, 8);  // 隐藏层2 5 * 8 -> 3
-
-	// 输出层   9 * 3 -> 3 
-	// 论文中输出层的计算是计算一个神经元9帧的求和。
-	// 但同时也指出可以使用sigmoid计算，没太明白。
-	// 三个输出节点的权重相同？参考论文 330
-	// 先按照输出层是3个神经元组成，每个神经元有3 * 9 个权重，输入是由隐藏层2中3个神经元，9帧求和后，sigmoid激活。
 	net.layers[2] = createTDLayer(2, 3, 8, 3);  
 
 	return net;
@@ -86,6 +79,7 @@ float* train(TDNet *net, float* input, float *target) {
 		exit(1);
 	}
 
+	#pragma omp parallel for
 	for (int i = 0; i < nCount; ++i) {
 		loss[i] = output[i] - target[i];
 	}
@@ -120,7 +114,7 @@ float* train(TDNet *net, float* input, float *target) {
 	return output;
 }
 
-float * forward(TDNet * net, float * input){
+float* forward(TDNet * net, float * input){
 	float *output = (float*)malloc(sizeof(float) * net->layers[net->layersCount - 1].neuronsCount);
 	if (!output) {
 		fprintf(stderr, "train malloc output fail!");

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <omp.h>
 
 TDLayer createTDLayer(unsigned int id, unsigned int neuronsCount, unsigned int delay, unsigned int inputSize) {
 	TDLayer layer;
@@ -13,6 +14,7 @@ TDLayer createTDLayer(unsigned int id, unsigned int neuronsCount, unsigned int d
 		exit(1);
 	}
 
+#pragma omp parallel for
 	for (int i = 0; i < neuronsCount; ++i) {
 		layer.neurons[i] = createTDNeuron((delay + 1) * inputSize);
 	}
