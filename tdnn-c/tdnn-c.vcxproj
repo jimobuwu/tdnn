@@ -79,6 +79,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="main.c" />
+    <ClCompile Include="TDConvLayer.c" />
     <ClCompile Include="TDLayer.c" />
     <ClCompile Include="TDNet.c" />
     <ClCompile Include="TDNeuron.c" />
@@ -86,6 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Macro.h" />
+    <ClInclude Include="TDConvLayer.h" />
     <ClInclude Include="TDLayer.h" />
     <ClInclude Include="TDNet.h" />
     <ClInclude Include="TDNeuron.h" />

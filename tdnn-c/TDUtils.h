@@ -3,9 +3,15 @@
 
 #include "Macro.h"
 
-float* getConv(const float* input, unsigned int input_width, unsigned int input_height,
-	const float* conv, unsigned int kernel_width, unsigned int kernel_height,
-	unsigned int stride_row, unsigned int stride_col, PADDING_TYPE pad_type, unsigned int padding_w, unsigned int padding_h, unsigned int *fm_size);
+typedef struct {
+	unsigned int w;  // weights width
+	unsigned int h;  // weights height
+	unsigned int c;  // weights channel
+} TDShape;
+
+float* getConv(const float *input, const TDShape *input_shape,
+	const float *kernel, const TDShape *kernel_shape, 
+	unsigned int stride_h);
 
 #endif
 

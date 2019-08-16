@@ -5,7 +5,7 @@
 
 typedef struct {	
 	float learningRate;					// 学习率
-	float decayRate;					// 学习率衰减率
+	float decayRate;					// 学习率衰减率	
 	TDLayer* layers;					// 层数据
 	unsigned int layersCount;			// 网络层数
 	float* inputFrames;					// 延时窗口多帧数据
@@ -16,8 +16,8 @@ typedef struct {
 
 } TDNet;
 
-TDNet createTDNet();
-float* train(TDNet *net, float* input, float *trainData);
+TDNet createTDNet(float learningRate, float decayRate);
+void addTDLayer(TDNet *net, const TDLayer *layer);
 float* forward(TDNet *net, float* input);
 
 #endif  /* TDNET_H_ */

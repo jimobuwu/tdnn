@@ -3,7 +3,7 @@
 
 #define SAFEFREE(p) if(p){free(p);p=NULL;};
 
-typedef enum{
+typedef enum {
 	DENSE,
 	CONV
 }LAYER_TYPE;
@@ -12,5 +12,11 @@ typedef enum {
 	SAME,
 	VALID
 }PADDING_TYPE;
+
+typedef enum {
+	RELU,
+	SIGMOID,
+	SOFTMAX
+} ACTIVATION_TYPE;
 
 #endif

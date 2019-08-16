@@ -1,18 +1,25 @@
 #ifndef TDNEURON_H_
 #define TDNEURON_H_
 
+#include "TDUtils.h"
+#include "Macro.h"
+
 typedef struct {
 	float *weights;					// 连接的权重参数
-	unsigned int kernel_w;			// 卷积核宽度
-	unsigned int kernel_h;			// 卷积核高度
-	unsigned int nConnections;		// 连接数（权重数）
-	float *activation;				// 激活值	
-	float *inputs;					// 记录输入，用于计算梯度
+	float bias;						// 偏移量
+	TDShape* kernel_shape;			// 卷积核的尺寸	
+	unsigned int stride_h;			// 高度方向的步长
+	float *activation;				// 激活值，由于h方向上有卷积，激活值是二维数组
+
+	unsigned int height_int;		// 输入的高度
+	unsigned int height_out;	    // 输出的高度
+
+	float* time_offsets;			// 选取的上一层输入的偏移量
+	ACTIVATION_TYPE act_type;		// 激活函数类型
 
 }TDNeuron;
 
-TDNeuron createTDNeuron(unsigned int nConnections, unsigned int kernel_w, unsigned int kernel_h);
-float *neuron_forward(TDNeuron* neuron, float* input, unsigned int input_w, unsigned int input_h);
-float *backward(TDNeuron* neuron, float loss, float learningRate);
+TDNeuron createTDNeuron(const TDShape *kernel_shape, const float *time_offsets, unsigned int offsets_size, unsigned int height_out);
+void neuron_forward(TDNeuron* neuron, float* input, const TDShape *input_shape);
 
 #endif /* TDNEURON_H_ */
