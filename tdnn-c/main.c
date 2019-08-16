@@ -15,21 +15,21 @@ static TDNet createHouNet() {
 	TDShape kernel_shape1 = { 8, 18, 3 };
 	TDShape input_shape1 = {1, 26, 3};
 	float time_offsets1[8] = { -4, -3, -2, -1, 0, 1, 2, 3 };
-	TDLayer l = createTDLayer(0, CONV, 128, &kernel_shape1, time_offsets1, 8, &input_shape1, 9);
+	TDLayer l = createTDLayer(0, CONV, RELU, 128, &kernel_shape1, time_offsets1, 8, &input_shape1, 9);
 	addTDLayer(&net, &l);
 
 	//conv2
 	TDShape kernel_shape2 = { 4, 3, 128 };
 	TDShape input_shape2 = { 1, 9, 128 };
 	float time_offsets2[4] = { -2, -1, 0, 1};
-	l = createTDLayer(1, CONV, 64, &kernel_shape2, time_offsets2, 4, &input_shape2, 7);
+	l = createTDLayer(1, CONV, RELU, 64, &kernel_shape2, time_offsets2, 4, &input_shape2, 7);
 	addTDLayer(&net, &l);
 
 	//conv3
 	TDShape kernel_shape3 = { 4, 3, 64 };
 	TDShape input_shape3 = { 1, 7, 64 };
 	float time_offsets3[4] = { -2, -1, 0, 1 };
-	l = createTDLayer(2, CONV, 64, &kernel_shape3, time_offsets3, 4, &input_shape3, 5);
+	l = createTDLayer(2, CONV, RELU, 64, &kernel_shape3, time_offsets3, 4, &input_shape3, 5);
 	addTDLayer(&net, &l);
 
 	// Affine1

@@ -19,7 +19,7 @@ typedef struct {
 
 }TDNeuron;
 
-TDNeuron createTDNeuron(const TDShape *kernel_shape, const float *time_offsets, unsigned int offsets_size, unsigned int height_out);
+TDNeuron createTDNeuron(ACTIVATION_TYPE act_type, const TDShape *kernel_shape, const float *time_offsets, unsigned int offsets_size, unsigned int height_out);
 void neuron_forward(TDNeuron* neuron, float* input, const TDShape *input_shape);
 
 #endif /* TDNEURON_H_ */

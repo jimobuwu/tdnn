@@ -19,6 +19,7 @@ typedef struct {
 TDLayer createTDLayer(
 	unsigned int id, 
 	LAYER_TYPE layer_type, 
+	ACTIVATION_TYPE act_type,
 	unsigned int neuronsCount, 
 	const TDShape *kernel_shape,
 	const float *time_offsets, 

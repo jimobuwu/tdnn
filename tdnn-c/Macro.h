@@ -14,6 +14,7 @@ typedef enum {
 }PADDING_TYPE;
 
 typedef enum {
+	NONE,
 	RELU,
 	SIGMOID,
 	SOFTMAX

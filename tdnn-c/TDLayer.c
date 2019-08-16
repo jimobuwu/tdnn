@@ -5,7 +5,7 @@
 #include <omp.h>
 #include "TDUtils.h"
 
-TDLayer createTDLayer(unsigned int id, LAYER_TYPE layer_type, unsigned int neuronsCount, const TDShape *kernel_shape,
+TDLayer createTDLayer(unsigned int id, LAYER_TYPE layer_type, ACTIVATION_TYPE act_type, unsigned int neuronsCount, const TDShape *kernel_shape,
 	const float *time_offsets, unsigned int offsets_size, const TDShape *input_shape, unsigned int height_out) {
 	TDLayer layer;
 	layer.id = id;
@@ -26,10 +26,10 @@ TDLayer createTDLayer(unsigned int id, LAYER_TYPE layer_type, unsigned int neuro
 
 //#pragma omp parallel for
 	for (int i = 0; i < neuronsCount; ++i) {
-		layer.neurons[i] = createTDNeuron(kernel_shape, time_offsets, offsets_size, height_out);
+		layer.neurons[i] = createTDNeuron(act_type, kernel_shape, time_offsets, offsets_size, height_out);
 	}
 
-	unsigned int inputFramesSize = kernel_shape->w * input_shape->h;
+	unsigned int inputFramesSize = time_offsets[offsets_size - 1] - time_offsets[0];
 	layer.inputFrames = (float*)calloc(layer.inputFramesSize, sizeof(float));
 	if (!layer.inputFrames) {
 		exit(1);
@@ -56,9 +56,9 @@ void layer_forward(TDLayer *layer, float *input, float *output){
 
 	unsigned int height_out = 0;
 	for (unsigned int i = 0; i < layer->neuronsCount; ++i) {
-		height_out = layer->neurons[i].height_out;
-		neuron_forward(&layer->neurons[i], input, layer->input_shape);
+		neuron_forward(&layer->neurons[i], layer->inputFrames, layer->input_shape);
 
+		height_out = layer->neurons[i].height_out;
 		for (unsigned int j = 0; j < height_out; ++j) {
 			output[i * height_out + j] = layer->neurons[i].activation[j];
 		}
