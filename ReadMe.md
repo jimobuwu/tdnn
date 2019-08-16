@@ -1,6 +1,19 @@
-### TDNN  时延神经网络
+### Kaldi的NNET3的C语言实现
 
-理解： 
-http://note.youdao.com/noteshare?id=6de71dff8f4af0b9902ee4aa397e3db9&sub=12892E831FD34B54A71165F5A17713B5
+## 支持的内容：  
+Conv  
+Dense   
+
+Relu  
+Sigmoid  
+SoftMax   
+
+## TimeHeightConvolutionComponent  
+和TDNN的不同点：  
+1、在height维度做卷积  
+2、在time维度上取非连续的输入帧，或中间数据
+
+
+
 
 
