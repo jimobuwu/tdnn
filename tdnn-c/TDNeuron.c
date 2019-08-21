@@ -4,13 +4,17 @@
 #include <string.h>
 #include <omp.h>
 
-TDNeuron createTDNeuron(ACTIVATION_TYPE act_type, const TDShape *kernel_shape, const float *time_offsets, unsigned int offsets_size, unsigned int height_out) {
+TDNeuron createTDNeuron(ACTIVATION_TYPE act_type, const TDShape *kernel_shape, 
+	const int *time_offsets, unsigned int offsets_size, unsigned int height_out) {
 	TDNeuron neuron;
 	neuron.kernel_shape = (TDShape*)malloc(sizeof(TDShape));
 	memcpy(neuron.kernel_shape, kernel_shape, sizeof(TDShape));
 	neuron.height_out = height_out;
-	neuron.act_type = act_type;
+	//neuron.act_type = act_type;
+	neuron.act_type = NONE;
 	neuron.activation = (float*)calloc(height_out, sizeof(float));
+	neuron.stride_h = 1;
+
 	if (!neuron.activation) {
 		exit(1);
 	}
@@ -21,11 +25,8 @@ TDNeuron createTDNeuron(ACTIVATION_TYPE act_type, const TDShape *kernel_shape, c
 		exit(1);
 	}
 
-	for (int i = 0; i < kernel_flatten_size; ++i) {
-		neuron.weights[i] = rand() / (float)RAND_MAX; // 0~1随机数
-	}
-
-	memcpy(neuron.time_offsets, time_offsets, sizeof(float) * offsets_size);
+	neuron.time_offsets = (int*)malloc(sizeof(int) * offsets_size);
+	memcpy(neuron.time_offsets, time_offsets, sizeof(time_offsets[0]) * offsets_size);
 	
 	return neuron;
 }
@@ -53,6 +54,13 @@ static float activate(ACTIVATION_TYPE type, float input) {
 	}
 
 	return output;
+}
+
+// bn
+static float batchNormalize(TDNeuron *neuron, float input) {
+
+	// TODO: scale、swift
+	return (input - neuron->bn_mean) / sqrt(neuron->bn_var + neuron->bn_epsilon);
 }
 
 // 根据timeoffsets下采样输入数据

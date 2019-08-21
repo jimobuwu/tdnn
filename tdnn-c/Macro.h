@@ -3,6 +3,8 @@
 
 #define SAFEFREE(p) if(p){free(p);p=NULL;};
 
+#define LINE_BUF_SIZE 25360 
+
 typedef enum {
 	DENSE,
 	CONV

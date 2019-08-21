@@ -89,6 +89,7 @@
     <ClInclude Include="Macro.h" />
     <ClInclude Include="TDConvLayer.h" />
     <ClInclude Include="TDLayer.h" />
+    <ClInclude Include="TDModel.h" />
     <ClInclude Include="TDNet.h" />
     <ClInclude Include="TDNeuron.h" />
     <ClInclude Include="TDUtils.h" />

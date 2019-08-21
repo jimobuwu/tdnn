@@ -3,11 +3,13 @@
 
 #include "TDNeuron.h"
 #include "Macro.h"
+#include "TDUtils.h"
 
 typedef struct {
 	unsigned int id;					// 层数	
+	char *name;							// 名字，和模型文件的component对应
 	LAYER_TYPE type;					// 层类型
-	TDNeuron* neurons;					// 神经元数据
+	TDNeuron *neurons;					// 神经元数据
 	unsigned int neuronsCount;			// 神经元数量
 	TDShape *input_shape;				// 输入数据尺寸
 	float *inputFrames;					// 延时窗口内的数据
@@ -17,16 +19,20 @@ typedef struct {
 } TDLayer;
 
 TDLayer createTDLayer(
-	unsigned int id, 
+	unsigned int id,
+	const char* name,
 	LAYER_TYPE layer_type, 
 	ACTIVATION_TYPE act_type,
 	unsigned int neuronsCount, 
 	const TDShape *kernel_shape,
-	const float *time_offsets, 
+	const int *time_offsets, 
 	unsigned int offsets_size, 
 	const TDShape *input_shape,
 	unsigned int height_out);
 
-void layer_forward(TDLayer* layer, float* input, float* output);
+void layer_forward(TDLayer *layer, const float *input, float *output);
+void load_weights(TDLayer *layer, const char *filePath);
+//void load_relu_weights(TDLayer *layer, const float *weights);
+//void load_bn_weights(TDLayer *layer, const float *weights);
 
 #endif /* TDLAYER_H_ */

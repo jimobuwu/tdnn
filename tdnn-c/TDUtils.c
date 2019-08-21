@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <stdio.h>
 
 
 float* getConv(const float *input, const TDShape *input_shape,
@@ -59,6 +60,52 @@ float* getConv(const float *input, const TDShape *input_shape,
 			out[i * out_w + j] = conv_value;
 		}
 	}
-
+	   
 	return out;
 }
+
+void parseWeights(const char *file, unsigned weights_rows, float *linear_weights, float *bias_weights)
+{
+	FILE *fp = fopen(file, "r");
+	if (!fp) {
+		return;
+	}
+
+	char line[LINE_BUF_SIZE];
+	unsigned count = 0;
+	int line_num = 0;	
+
+	while (!feof(fp)) {			
+		fgets(line, LINE_BUF_SIZE, fp);
+		//printf("\n line: %s", line);
+
+		if (line_num >= 1 && line_num <= weights_rows + 1) {
+			// linearParams
+			char *p = line, *end;			
+			for (float f = strtof(p, &end); p != end; f = strtof(p, &end)) {
+				p = end;
+				//printf("%f ", f);
+				linear_weights[count] = f;
+				++count;
+			}
+		}
+		else if(line_num == weights_rows + 3) {
+			// biasParams
+			char *p = line, *end;
+			printf(" \n linear count : %d \n", count);
+			count = 0;
+			for (float f = strtof(p, &end); p != end; f = strtof(p, &end)) {
+				p = end;
+				printf("%f ", f);
+				bias_weights[count] = f;
+				++count;
+			}
+			printf(" bias count : %d", count);
+		}
+
+		++line_num;
+	}
+	
+	fclose(fp);
+}
+
