@@ -43,7 +43,11 @@ void forward(TDNet * net, float * input){
 			exit(1);
 		}
 
-		layer_forward(layer, passData, activation);
+		if( -1 == layer_forward(layer, passData, activation)) {
+			// 延迟帧数不足时，继续接收输入数据
+			break;
+		}
+
 		printf("\nlayer %d activations: \n", i);
 		for (int m = 0; m < output_size; ++m) {
 			if (0 == m % layer->neurons[0].height_out) {
@@ -66,40 +70,10 @@ void forward(TDNet * net, float * input){
 		memcpy(passData, activation, sizeof(float) * output_size);
 		SAFEFREE(activation);
 	}
+
+
 	SAFEFREE(passData);
 }
-
-//static parseModelLine(const char* line, TDNet *net, char *compNames[], int *compCount) {
-//	char *pos;
-//
-//	if (strstr(line, "input-node")) {
-//		
-//	} 
-//	else if(strstr(line, "component-node")) {
-//		pos = strstr("line", "component");
-//	}
-//	else if (strstr(line, "output-node")) {
-//	}
-//	++compCount;
-//}
-//
-//void parseModelFile(const char* file, TDNet *net) {
-//	FILE *fp = fopen(file, "r");
-//	if (!fp) {
-//		return;
-//	}
-//
-//	char *compNames[20];
-//	int compCount = 0;
-//
-//	char line[LINE_BUF_SIZE];
-//	while (!feof(fp)) {
-//		fgets(line, LINE_BUF_SIZE, fp);
-//		printf("%s", line);
-//	}
-//
-//	fclose(fp);
-//}
 
 void parseInputFile(const char * file, TDNet *net) {
 	FILE * fp = fopen(file, "r");
@@ -114,7 +88,7 @@ void parseInputFile(const char * file, TDNet *net) {
 
 	while (!feof(fp)) {
 		fgets(line, LINE_BUF_SIZE, fp);
-		printf("\n line : ", line);
+		printf("\n input line : ", line);
 
 		count = 0;
 		char *p = line, *end;
@@ -127,8 +101,6 @@ void parseInputFile(const char * file, TDNet *net) {
 
 		// 输入一帧数据，前向
 		forward(net, one_frame);
-
-		printf("\n");
 		printf("\n one frame input count: %d", count);
 	}
 	printf("\n input count: %d", count);

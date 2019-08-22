@@ -12,7 +12,6 @@ typedef struct {
 TDNet createTDNet(unsigned layersCount);
 void addTDLayer(TDNet *net, const TDLayer *layer);
 void forward(TDNet *net, float *input);
-//void parseModelFile(const char* file, TDNet *net);
 void parseInputFile(const char*file, TDNet *net);
 
 #endif  /* TDNET_H_ */

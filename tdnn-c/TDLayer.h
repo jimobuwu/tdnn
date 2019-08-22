@@ -15,6 +15,8 @@ typedef struct {
 	float *inputFrames;					// 延时窗口内的数据
 	unsigned int inputFramesSize;		// 延时窗口内数据的总量
 	unsigned int delay;					// 延时
+	unsigned int curBufferFrameSize;    // 当前缓存的帧数
+	_Bool has_logsoftmax;
 
 } TDLayer;
 
@@ -28,10 +30,13 @@ TDLayer createTDLayer(
 	const int *time_offsets, 
 	unsigned int offsets_size, 
 	const TDShape *input_shape,
-	unsigned int height_out);
+	unsigned int height_out,	
+	_Bool has_logsoftmax);
 
-void layer_forward(TDLayer *layer, const float *input, float *output);
+int layer_forward(TDLayer *layer, const float *input, float *output);
 void load_weights(TDLayer *layer, const char *filePath);
+void addBN(TDLayer *layer, const char* filePath, unsigned dim, float epsilon, unsigned count, float gamma);
+
 //void load_relu_weights(TDLayer *layer, const float *weights);
 //void load_bn_weights(TDLayer *layer, const float *weights);
 

@@ -47,12 +47,13 @@ float* getConv(const float *input, const TDShape *input_shape,
 
 	float* out = (float*)malloc(sizeof(float) * out_w * out_h);
 	if (!out) {
+		printf("malloc fail! getConv out ");
 		abort();
 	}
 
 	for (int i = 0; i < out_h; ++i) {
 		for (int j = 0; j < out_w; ++j) {
-			int conv_value = 0;
+			float conv_value = 0.f;
 			wh = (i * out_w + j) * conv_len;
 			for (int m = 0; m < conv_len; ++m) {
 				conv_value += tmp[wh + m] * kernel[m];
@@ -96,16 +97,19 @@ void parseWeights(const char *file, unsigned weights_rows, float *linear_weights
 			count = 0;
 			for (float f = strtof(p, &end); p != end; f = strtof(p, &end)) {
 				p = end;
-				printf("%f ", f);
+				//printf("%f ", f);
 				bias_weights[count] = f;
 				++count;
 			}
-			printf(" bias count : %d", count);
+			printf("bias count : %d", count);
 		}
 
 		++line_num;
 	}
 	
+	printf("\nfirst linear weights: %f", linear_weights[0]);
+	printf("\nfirst bias weights: %f", bias_weights[0]);
+
 	fclose(fp);
 }
 
