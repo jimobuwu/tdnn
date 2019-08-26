@@ -74,28 +74,8 @@ static float batchNormalize(TDNeuron *neuron, float input) {
 	return neuron->bn->scale * input + neuron->bn->offset;
 }
 
-// 根据timeoffsets下采样输入数据
-static float* sampleInput(const TDNeuron *neuron, const float *input, const TDShape *input_shape) {
-	unsigned one_input_size = input_shape->h * input_shape->c;
-
-	float *sampled = (float*)malloc(sizeof(float) * neuron->kernel_shape->w * one_input_size);
-	if (!sampled) {
-		printf("malloc fail! sampleInput ");
-		abort();
-	}
-
-	for (int i = 0; i < neuron->kernel_shape->w; ++i) {
-		int offset = neuron->time_offsets[i] - neuron->time_offsets[0];
-		memcpy(sampled + i * one_input_size, input + offset * one_input_size, sizeof(float) * one_input_size);
-	}
-
-	return sampled;
-}
-
 void neuron_forward(TDNeuron *neuron, float *input, const TDShape *input_shape) {
-	float *sampledInput = sampleInput(neuron, input, input_shape);
-
-	float *output = getConv(sampledInput, input_shape, neuron->weights, neuron->kernel_shape, neuron->stride_h);
+	float *output = getConv(input, input_shape, neuron->weights, neuron->kernel_shape, neuron->stride_h);
 	for (unsigned int i = 0; i < neuron->height_out; ++i) {
 		if(neuron->bn)
 			neuron->activation[i] = activate(neuron->act_type, batchNormalize(neuron, output[i] + neuron->bias));
