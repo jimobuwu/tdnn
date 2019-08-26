@@ -19,6 +19,7 @@ TDLayer createTDLayer(unsigned int id, const char* name, LAYER_TYPE layer_type,
 	layer.delay = kernel_shape->w;
 	layer.curBufferFrameSize = 0;
 	layer.has_logsoftmax = has_logsoftmax;
+	layer.is_output = 0;
 	
 	layer.input_shape = (TDShape*)malloc(sizeof(TDShape));
 	if (!layer.input_shape) {
@@ -54,13 +55,14 @@ static int layer_pushFrame(TDLayer *layer, float *input) {
 	int ret = 0;
 	unsigned int input_size = layer->input_shape->h * layer->input_shape->c;
 
-	if (layer->curBufferFrameSize < layer->delay - 1) {
-		// 加入新帧
-		memcpy(&layer->inputFrames[layer->curBufferFrameSize * input_size], input, sizeof(float) * input_size);
-		++layer->curBufferFrameSize;
-		ret = -1;
-	}
-	else {
+	//if (layer->curBufferFrameSize < layer->delay) {
+	//	// 加入新帧
+	//	memcpy(&layer->inputFrames[layer->curBufferFrameSize * input_size], input, sizeof(float) * input_size);
+	//	++layer->curBufferFrameSize;
+
+	//	if(layer->curBufferFrameSize < layer->delay)
+	//		ret = -1;
+	//} else {
 		// 从第二帧开始前移
 		for (unsigned int i = 0; i < layer->delay - 1; ++i) {
 			memcpy(&layer->inputFrames[i * input_size],
@@ -69,7 +71,7 @@ static int layer_pushFrame(TDLayer *layer, float *input) {
 		}
 		// 加入新帧
 		memcpy(&layer->inputFrames[(layer->delay - 1) * input_size], input, sizeof(float) * input_size);
-	}
+	//}
 
 	return ret;
 }
@@ -95,6 +97,25 @@ int layer_forward(TDLayer *layer, const float *input, float *output) {
 	// logsoftmax
 	if (layer->has_logsoftmax) {
 		logsoftmax(output, layer->neuronsCount * height_out);
+	}
+
+	if (layer->is_output) {
+		const char* output_file = "../../../data/hounet/output.txt";
+		FILE *fp = fopen(output_file, "a+");
+		//fprintf(fp, "layer id: %d \n", layer->id);
+		int max_i = 0;
+		int max_v = output[0];
+
+		for (int i = 0; i < layer->neuronsCount * height_out; ++i) {
+			if (max_v < output[i]) {
+				max_v = output[i];
+				max_i = i;
+			}
+			fprintf(fp, "%f ", output[i]);
+		}
+		fprintf(fp, "\nmax i = %d", max_i);
+		fprintf(fp, "\n\n");
+		fclose(fp);
 	}
 
 	return 0;

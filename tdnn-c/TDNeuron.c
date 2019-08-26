@@ -64,13 +64,9 @@ void addNeuronBN(TDNeuron * neuron, float epsilon, unsigned count, float gamma, 
 	neuron->bn->gamma = gamma;
 	neuron->bn->mean = mean;
 	neuron->bn->var = var;
-
-	neuron->bn->scale = fmax(0.f, gamma * (powf(((var / count) + epsilon), -0.5)));
-	neuron->bn->offset = -neuron->bn->scale * (mean / count);
-
-	/*neuron->bn->scale = fmax(0.f, gamma * (powf((var + epsilon), -0.5)));
-	neuron->bn->offset = -neuron->bn->scale * mean;*/
-
+	
+	neuron->bn->scale = gamma * powf(fmax(0.f, var) + epsilon, -0.5);
+	neuron->bn->offset = -neuron->bn->scale * mean;
 }
 
 // bn
@@ -79,8 +75,10 @@ static float batchNormalize(TDNeuron *neuron, float input) {
 }
 
 // 根据timeoffsets下采样输入数据
-static float* sampleInput(const TDNeuron *neuron, float *input, const TDShape *input_shape) {
-	float *sampled = (float*)malloc(sizeof(float) * neuron->kernel_shape->w * input_shape->h);
+static float* sampleInput(const TDNeuron *neuron, const float *input, const TDShape *input_shape) {
+	unsigned one_input_size = input_shape->h * input_shape->c;
+
+	float *sampled = (float*)malloc(sizeof(float) * neuron->kernel_shape->w * one_input_size);
 	if (!sampled) {
 		printf("malloc fail! sampleInput ");
 		abort();
@@ -88,7 +86,7 @@ static float* sampleInput(const TDNeuron *neuron, float *input, const TDShape *i
 
 	for (int i = 0; i < neuron->kernel_shape->w; ++i) {
 		int offset = neuron->time_offsets[i] - neuron->time_offsets[0];
-		memcpy(sampled + i * input_shape->h, input + offset * input_shape->h, sizeof(float) * input_shape->h);
+		memcpy(sampled + i * one_input_size, input + offset * one_input_size, sizeof(float) * one_input_size);
 	}
 
 	return sampled;
@@ -100,9 +98,9 @@ void neuron_forward(TDNeuron *neuron, float *input, const TDShape *input_shape) 
 	float *output = getConv(sampledInput, input_shape, neuron->weights, neuron->kernel_shape, neuron->stride_h);
 	for (unsigned int i = 0; i < neuron->height_out; ++i) {
 		if(neuron->bn)
-			neuron->activation[i] = activate(neuron->act_type, batchNormalize(neuron, output[i]));
+			neuron->activation[i] = activate(neuron->act_type, batchNormalize(neuron, output[i] + neuron->bias));
 		else
-			neuron->activation[i] = activate(neuron->act_type, output[i]);
+			neuron->activation[i] = activate(neuron->act_type, output[i] + neuron->bias);
 	}
 }
 

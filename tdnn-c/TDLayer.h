@@ -17,6 +17,7 @@ typedef struct {
 	unsigned int delay;					// 延时
 	unsigned int curBufferFrameSize;    // 当前缓存的帧数
 	_Bool has_logsoftmax;
+	_Bool is_output;
 
 } TDLayer;
 

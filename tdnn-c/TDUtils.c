@@ -33,17 +33,29 @@ float* getConv(const float *input, const TDShape *input_shape,
 
 	int wh = 0;
 	int index = 0;
-	for (int i = 0; i < out_h; ++i) {
-		for (int j = 0; j < out_w; ++j) {
-			for (int c = 0; c < kernel_shape->c; ++c) {
-				int start = input_w * i + input_shape->h * c;
+	//for (int i = 0; i < out_h; ++i) {
+	//	for (int j = 0; j < out_w; ++j) {
+	//		for (int c = 0; c < kernel_shape->c; ++c) {
+	//			int start = input_w * i + input_shape->h * c;
 
-				for (int w = 0; w < kernel_shape->h; ++w) {
-					tmp[index++] = input[start + w];
+	//			for (int w = 0; w < kernel_shape->h; ++w) {
+	//				tmp[index++] = input[start + w];
+	//			}
+	//		}
+	//	}
+	//}
+
+	for (int i = 0; i < out_h; ++i) {
+		for (int w = 0; w < kernel_shape->w; ++w) {
+			for (int c = 0; c < kernel_shape->c; ++c) {
+				for (int h = 0; h < kernel_shape->h; ++h) {
+					int start = w * input_w + c * input_shape->h + i;
+					tmp[index++] = input[start + h];
 				}
 			}
 		}
 	}
+
 
 	float* out = (float*)malloc(sizeof(float) * out_w * out_h);
 	if (!out) {
