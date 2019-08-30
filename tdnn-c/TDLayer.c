@@ -140,7 +140,6 @@ int layer_forward(TDLayer *layer, const float *input, float *output) {
 	if (layer->is_output) {
 		const char* output_file = "../../../data/hounet/output.txt";
 		FILE *fp = fopen(output_file, "a+");
-		//fprintf(fp, "layer id: %d \n", layer->id);
 		int max_i = 0;
 		int max_v = output[0];
 
@@ -167,11 +166,6 @@ void load_weights(TDLayer * layer, const char *filePath) {
 	float *linear_weights = (float*)malloc(sizeof(float) * total);
 	float *bias_weights = (float*)malloc(sizeof(float) * layer->neuronsCount);
 
-	/*char *fileName = layer->name;
-	size_t len = strlen(fileName);
-	fileName = (char*)realloc(fileName, strlen(fileName) + 5);
-	strcat(fileName, ".txt");*/
-
 	parseWeights(filePath, layer->neuronsCount, linear_weights, bias_weights);
 
 	unsigned index = 0;
@@ -182,7 +176,6 @@ void load_weights(TDLayer * layer, const char *filePath) {
 }
 
 void addBN(TDLayer *layer, const char* filePath, unsigned dim, float epsilon, float gamma) {
-	// load from file
 	FILE *fp = fopen(filePath, "r");
 	if (!fp) {
 		return;

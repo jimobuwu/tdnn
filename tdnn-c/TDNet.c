@@ -21,12 +21,6 @@ void addTDLayer(TDNet *net, const TDLayer *layer) {
 
 // input, 一帧数据
 void forward(TDNet * net, float * input, FILE *fp){
-	//float *output = (float*)malloc(sizeof(float) * net->layers[net->layersCount - 1].neuronsCount);
-	//if (!output) {
-	//	fprintf(stderr, "train malloc output fail!");
-	//	exit(1);
-	//}
-	
 	++frame_input_num;
 	printf("\n input frame num: %d", frame_input_num);
 
@@ -62,14 +56,6 @@ void forward(TDNet * net, float * input, FILE *fp){
 		}
 		fprintf(fp, "\n\n");
 
-		/*printf("\nlayer %d activations: \n", i);
-		for (int m = 0; m < output_size; ++m) {
-			if (0 == m % layer->neurons[0].height_out) {
-				printf("\n");
-			}
-			printf("%f ", activation[m]);
-		}*/
-
 		// 上一层的激活值作为下一层的输入
 		passData = (float*)realloc(passData, sizeof(float) * output_size);
 		if (!passData) {
@@ -85,23 +71,22 @@ void forward(TDNet * net, float * input, FILE *fp){
 	SAFEFREE(passData);
 }
 
-static void afterHandle(TDNet *net) {
-	// 最后一帧结束后处理
-	for (int i = 0; i < net->layersCount; ++i) {
-		TDLayer *layer = &net->layers[i];
-		int offset = layer->neurons[0].time_offsets[layer->neurons[0].kernel_shape->w - 1];
-		unsigned inputSize = sizeof(float) * layer->input_shape->c * layer->input_shape->h;
-		float *lastFrame = (float*)malloc(inputSize);
-
-		if (layer->curBufferFrameSize == offset) {
-			memcpy(lastFrame, &layer->inputFrames[layer->delay - 1], inputSize);
-			
-		}
-		else { /* layer->curBufferFrameSize < offset, 帧数不足*/
-			memcpy(lastFrame, &layer->inputFrames[layer->curBufferFrameSize - 1], inputSize);
-		}
-	}
-}
+//static void afterHandle(TDNet *net) {
+//	// 最后一帧结束后处理
+//	for (int i = 0; i < net->layersCount; ++i) {
+//		TDLayer *layer = &net->layers[i];
+//		int offset = layer->neurons[0].time_offsets[layer->neurons[0].kernel_shape->w - 1];
+//		unsigned inputSize = sizeof(float) * layer->input_shape->c * layer->input_shape->h;
+//		float *lastFrame = (float*)malloc(inputSize);
+//
+//		if (layer->curBufferFrameSize == offset) {
+//			memcpy(lastFrame, &layer->inputFrames[layer->delay - 1], inputSize);
+//		}
+//		else { /* layer->curBufferFrameSize < offset, 帧数不足*/
+//			memcpy(lastFrame, &layer->inputFrames[layer->curBufferFrameSize - 1], inputSize);
+//		}
+//	}
+//}
 
 void parseInputFile(const char * file, TDNet *net) {
 	FILE * fp = fopen(file, "r");
