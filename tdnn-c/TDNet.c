@@ -85,6 +85,24 @@ void forward(TDNet * net, float * input, FILE *fp){
 	SAFEFREE(passData);
 }
 
+static void afterHandle(TDNet *net) {
+	// 最后一帧结束后处理
+	for (int i = 0; i < net->layersCount; ++i) {
+		TDLayer *layer = &net->layers[i];
+		int offset = layer->neurons[0].time_offsets[layer->neurons[0].kernel_shape->w - 1];
+		unsigned inputSize = sizeof(float) * layer->input_shape->c * layer->input_shape->h;
+		float *lastFrame = (float*)malloc(inputSize);
+
+		if (layer->curBufferFrameSize == offset) {
+			memcpy(lastFrame, &layer->inputFrames[layer->delay - 1], inputSize);
+			
+		}
+		else { /* layer->curBufferFrameSize < offset, 帧数不足*/
+			memcpy(lastFrame, &layer->inputFrames[layer->curBufferFrameSize - 1], inputSize);
+		}
+	}
+}
+
 void parseInputFile(const char * file, TDNet *net) {
 	FILE * fp = fopen(file, "r");
 	if (!fp) {
@@ -102,6 +120,7 @@ void parseInputFile(const char * file, TDNet *net) {
 	while (!feof(fp)) {
 		fgets(line, LINE_BUF_SIZE, fp);
 		printf("\n input line : ", line);
+		printf("\n");
 
 		count = 0;
 		char *p = line, *end;
@@ -117,6 +136,12 @@ void parseInputFile(const char * file, TDNet *net) {
 		printf("\n one frame input count: %d", count);
 	}
 	printf("\n input count: %d", count);
+
+	// 再输入offset个最后一帧
+	/*int offset = net->layers[0].neurons[0].time_offsets[net->layers[0].neurons[0].kernel_shape->w - 1];
+	for (int i = 0; i < offset; ++i) {
+		forward(net, one_frame, ouput_fp);
+	}*/
 
 	fclose(fp);
 	fclose(ouput_fp);

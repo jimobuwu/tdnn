@@ -5,7 +5,6 @@
 #include <math.h>
 #include <stdio.h>
 
-
 float* getConv(const float *input, const TDShape *input_shape,
 	const float *kernel, const TDShape *kernel_shape, unsigned int stride_h) {
 
@@ -21,40 +20,30 @@ float* getConv(const float *input, const TDShape *input_shape,
 		abort();
 	}
 
-	// flatten and save
-
-	// out_h = 9
-	// out_w = 1
-	// kernel_shape->w = 8
-	// kernel_shape->h = 18
-	// kernel_shape->c = 3
-
 	int input_w = input_shape->h * input_shape->c;
-
-	int wh = 0;
 	int index = 0;
-	//for (int i = 0; i < out_h; ++i) {
-	//	for (int j = 0; j < out_w; ++j) {
-	//		for (int c = 0; c < kernel_shape->c; ++c) {
-	//			int start = input_w * i + input_shape->h * c;
 
-	//			for (int w = 0; w < kernel_shape->h; ++w) {
-	//				tmp[index++] = input[start + w];
+	// 权重按照 w,h,c 排列
+	for (int i = 0; i < out_h; ++i) {
+		for (int w = 0; w < kernel_shape->w; ++w) {
+			for (int h = 0; h < kernel_shape->h * kernel_shape->c; ++h) {
+				int start = i * kernel_shape->c + input_w * w;
+				tmp[index++] = input[start + h];
+			}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+		}
+	}
+
+	// 权重按照 h,w,c 排列
+	//for (int i = 0; i < out_h; ++i) {
+	//	for (int h = 0; h < kernel_shape->h; ++h) {
+	//		for (int w = 0; w < kernel_shape->w; ++w) {
+	//			int start = (i + h) * kernel_shape->c + w * input_w;
+	//			for (int c = 0; c < kernel_shape->c; ++c) {
+	//				tmp[index++] = input[start + c];
 	//			}
 	//		}
 	//	}
 	//}
-
-	for (int i = 0; i < out_h; ++i) {
-		for (int w = 0; w < kernel_shape->w; ++w) {
-			for (int c = 0; c < kernel_shape->c; ++c) {
-				for (int h = 0; h < kernel_shape->h; ++h) {
-					int start = w * input_w + c * input_shape->h + i;
-					tmp[index++] = input[start + h];
-				}
-			}
-		}
-	}
 
 
 	float* out = (float*)malloc(sizeof(float) * out_w * out_h);
@@ -63,8 +52,9 @@ float* getConv(const float *input, const TDShape *input_shape,
 		abort();
 	}
 
+	int wh = 0;
 	for (int i = 0; i < out_h; ++i) {
-		for (int j = 0; j < out_w; ++j) {
+ 		for (int j = 0; j < out_w; ++j) {
 			float conv_value = 0.f;
 			wh = (i * out_w + j) * conv_len;
 			for (int m = 0; m < conv_len; ++m) {

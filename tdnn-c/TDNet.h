@@ -6,7 +6,7 @@
 
 typedef struct {	
 	TDLayer *layers;					// 层数据
-	unsigned layersCount;			// 网络层数	
+	unsigned layersCount;				// 网络层数	
 	unsigned input_dim;					// 一帧输入数据的维度
 } TDNet;
 

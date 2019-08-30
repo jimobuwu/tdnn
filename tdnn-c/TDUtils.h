@@ -10,10 +10,10 @@ typedef struct {
 } TDShape;
 
 float* getConv(const float *input, const TDShape *input_shape,
-	const float *kernel, const TDShape *kernel_shape, 
-	unsigned int stride_h);
+	const float *kernel, const TDShape *kernel_shape, unsigned int stride_h);
 
-void parseWeights(const char *file, unsigned weights_rows, float *linear_weights, float *bias_weights);
+void parseWeights(const char *file, unsigned weights_rows, 
+	float *linear_weights, float *bias_weights);
 
 #endif
 

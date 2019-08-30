@@ -54,15 +54,31 @@ return:
 static int layer_pushFrame(TDLayer *layer, float *input) {
 	int ret = 0;
 	unsigned int input_size = layer->input_shape->h * layer->input_shape->c;
+	int offset = layer->neurons[0].time_offsets[layer->neurons[0].kernel_shape->w - 1];
 
-	//if (layer->curBufferFrameSize < layer->delay) {
-	//	// 加入新帧
-	//	memcpy(&layer->inputFrames[layer->curBufferFrameSize * input_size], input, sizeof(float) * input_size);
-	//	++layer->curBufferFrameSize;
+	if (0 == layer->curBufferFrameSize) {
+		for (unsigned int i = 0; i < layer->delay; ++i) {
+			memcpy(&layer->inputFrames[i * input_size],
+				input,
+				sizeof(float) * input_size);
+		}
+	}
 
-	//	if(layer->curBufferFrameSize < layer->delay)
-	//		ret = -1;
-	//} else {
+	//if (layer->curBufferFrameSize < offset + 1) {
+	if (layer->curBufferFrameSize < layer->delay) {
+		/*for (unsigned int i = 0; i < layer->delay - 1; ++i) {
+			memcpy(&layer->inputFrames[i * input_size],
+				&layer->inputFrames[(i + 1) * input_size],
+				sizeof(float) * input_size);
+		}
+		memcpy(&layer->inputFrames[(layer->delay - 1) * input_size], input, sizeof(float) * input_size);*/
+
+		// 加入新帧
+		memcpy(&layer->inputFrames[layer->curBufferFrameSize * input_size], input, sizeof(float) * input_size);
+		++layer->curBufferFrameSize;
+		if(layer->curBufferFrameSize < layer->delay)
+			ret = -1;
+	} else {
 		// 从第二帧开始前移
 		for (unsigned int i = 0; i < layer->delay - 1; ++i) {
 			memcpy(&layer->inputFrames[i * input_size],
@@ -71,7 +87,7 @@ static int layer_pushFrame(TDLayer *layer, float *input) {
 		}
 		// 加入新帧
 		memcpy(&layer->inputFrames[(layer->delay - 1) * input_size], input, sizeof(float) * input_size);
-	//}
+	}
 
 	return ret;
 }
@@ -108,11 +124,13 @@ int layer_forward(TDLayer *layer, const float *input, float *output) {
 
 	for (unsigned int i = 0; i < layer->neuronsCount; ++i) {
 		neuron_forward(&layer->neurons[i], sampledInput, layer->input_shape);
-		
-		for (unsigned int j = 0; j < height_out; ++j) {
-			output[i * height_out + j] = layer->neurons[i].activation[j];
-		}
 	}	
+
+	for (unsigned int j = 0; j < height_out; ++j) {
+		for (unsigned int i = 0; i < layer->neuronsCount; ++i) {
+			output[j * layer->neuronsCount + i] = layer->neurons[i].activation[j];
+		}
+	}
 
 	// logsoftmax
 	if (layer->has_logsoftmax) {
@@ -163,7 +181,7 @@ void load_weights(TDLayer * layer, const char *filePath) {
 	}
 }
 
-void addBN(TDLayer *layer, const char* filePath, unsigned dim, float epsilon, unsigned count, float gamma) {
+void addBN(TDLayer *layer, const char* filePath, unsigned dim, float epsilon, float gamma) {
 	// load from file
 	FILE *fp = fopen(filePath, "r");
 	if (!fp) {
@@ -206,7 +224,7 @@ void addBN(TDLayer *layer, const char* filePath, unsigned dim, float epsilon, un
 	}
 
 	for (int i = 0; i < layer->neuronsCount; ++i) {
-		addNeuronBN(&layer->neurons[i], epsilon, count, gamma, means[i], vars[i]);
+		addNeuronBN(&layer->neurons[i], epsilon, gamma, means[i], vars[i]);
 	}
 }
 

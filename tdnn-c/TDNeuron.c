@@ -57,10 +57,9 @@ static float activate(ACTIVATION_TYPE type, float input) {
 	return output;
 }
 
-void addNeuronBN(TDNeuron * neuron, float epsilon, unsigned count, float gamma, float mean, float var) {
+void addNeuronBN(TDNeuron * neuron, float epsilon, float gamma, float mean, float var) {
 	neuron->bn = (TDNeuronBatchNorm*)malloc(sizeof(TDNeuronBatchNorm));
 	neuron->bn->epsilon = epsilon;
-	neuron->bn->count = count;
 	neuron->bn->gamma = gamma;
 	neuron->bn->mean = mean;
 	neuron->bn->var = var;

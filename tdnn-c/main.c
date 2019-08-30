@@ -16,18 +16,30 @@ static TDNet createHouNet() {
 	TDShape kernel_shape1 = { 8, 18, 3 };
 	TDShape input_shape1 = {1, 26, 3};
 	int time_offsets1[8] = { -4, -3, -2, -1, 0, 1, 2, 3 };
+
+	/*TDShape kernel_shape1 = { 5, 18, 3 };
+	TDShape input_shape1 = {1, 26, 3};
+	int time_offsets1[5] = { -2, -1, 0, 1, 2};*/
+
+	//TDLayer l1 = createTDLayer(0, "cnn1.conv", CONV, NONE_ACT, 1, &kernel_shape1, time_offsets1, 5, &input_shape1, 9, 0);
 	TDLayer l1 = createTDLayer(0, "cnn1.conv", CONV, RELU, 128, &kernel_shape1, time_offsets1, 8, &input_shape1, 9, 0);
 	load_weights(&l1, "../../../data/hounet/cnn1.conv.txt");
-	addBN(&l1, "../../../data/hounet/cnn1.batchnorm.txt", 128, 0.001, 1008000, 1);
+	addBN(&l1, "../../../data/hounet/cnn1.batchnorm.txt", 128, 0.001, 1.f);
 	addTDLayer(&net, &l1);
 
 	//conv2
 	TDShape kernel_shape2 = { 4, 3, 128 };
 	TDShape input_shape2 = { 1, 9, 128 };
 	int time_offsets2[4] = { -2, -1, 0, 1};
+
+	////TDShape kernel_shape2 = { 4, 3, 1 };
+	//TDShape input_shape2 = { 1, 9, 1 };
+	//int time_offsets2[4] = { -2, -1, 0, 1 };
+
+	//TDLayer l2 = createTDLayer(1, "cnn2.conv", CONV, NONE_ACT, 1, &kernel_shape2, time_offsets2, 4, &input_shape2, 7, 0);
 	TDLayer l2 = createTDLayer(1, "cnn2.conv", CONV, RELU, 64, &kernel_shape2, time_offsets2, 4, &input_shape2, 7, 0);
 	load_weights(&l2, "../../../data/hounet/cnn2.conv.txt");
-	addBN(&l2, "../../../data/hounet/cnn1.batchnorm.txt", 64, 0.001, 700000.1, 1);
+	addBN(&l2, "../../../data/hounet/cnn2.batchnorm.txt", 64, 0.001, 1.f);
 	addTDLayer(&net, &l2);
 
 	////conv3
@@ -36,7 +48,7 @@ static TDNet createHouNet() {
 	int time_offsets3[4] = { -2, -1, 0, 1 };
 	TDLayer l3 = createTDLayer(2, "cnn3.conv", CONV, RELU, 64, &kernel_shape3, time_offsets3, 4, &input_shape3, 5, 0);
 	load_weights(&l3, "../../../data/hounet/cnn3.conv.txt");
-	addBN(&l3, "../../../data/hounet/cnn1.batchnorm.txt", 64, 0.001, 440000, 1);
+	addBN(&l3, "../../../data/hounet/cnn3.batchnorm.txt", 64, 0.001, 1.f);
 	addTDLayer(&net, &l3);
 	
 	// Affine1

@@ -36,7 +36,7 @@ TDLayer createTDLayer(
 
 int layer_forward(TDLayer *layer, const float *input, float *output);
 void load_weights(TDLayer *layer, const char *filePath);
-void addBN(TDLayer *layer, const char* filePath, unsigned dim, float epsilon, unsigned count, float gamma);
+void addBN(TDLayer *layer, const char* filePath, unsigned dim, float epsilon, float gamma);
 
 //void load_relu_weights(TDLayer *layer, const float *weights);
 //void load_bn_weights(TDLayer *layer, const float *weights);
