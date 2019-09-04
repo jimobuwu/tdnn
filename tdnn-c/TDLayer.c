@@ -6,26 +6,27 @@
 #include "TDUtils.h"
 
 
-TDLayer createTDLayer(unsigned int id, const char* name, LAYER_TYPE layer_type, 
-	ACTIVATION_TYPE act_type, unsigned int neuronsCount, const TDShape *kernel_shape,
-	const int *time_offsets, unsigned int offsets_size, const TDShape *input_shape, 
-	unsigned int height_out, _Bool has_logsoftmax) {
+TDLayer createTDLayer(unsigned int id, const char *name, layerType layerType, 
+	ACTIVATION_TYPE actType, unsigned int neuronsCount, const TDShape *kernelShape,
+	const int *timeOffsets, unsigned int offsetsSize, const TDShape *inputShape, 
+	unsigned int heightOut, _Bool hasLogsoftmax, _Bool actBeforeNorm) {
 	TDLayer layer;
 	layer.id = id;
 	layer.name = malloc(strlen(name) + 1);
 	strcpy(layer.name, name);
-	layer.type = layer_type;
+	layer.type = layerType;
 	layer.neuronsCount = neuronsCount;
-	layer.delay = kernel_shape->w;
+	layer.delay = timeOffsets[offsetsSize - 1] - timeOffsets[0] + 1;
 	layer.curBufferFrameSize = 0;
-	layer.has_logsoftmax = has_logsoftmax;
-	layer.is_output = 0;
+	layer.hasLogsoftmax = hasLogsoftmax;
+	layer.isOutput = 0;
+	layer.LNTargetRms = 1.f;
 	
-	layer.input_shape = (TDShape*)malloc(sizeof(TDShape));
-	if (!layer.input_shape) {
+	layer.inputShape = (TDShape*)malloc(sizeof(TDShape));
+	if (!layer.inputShape) {
 		exit(1);
 	}
-	memcpy(layer.input_shape, input_shape, sizeof(TDShape));
+	memcpy(layer.inputShape, inputShape, sizeof(TDShape));
 
 	layer.neurons = (TDNeuron*)malloc(sizeof(TDNeuron) * neuronsCount);
 	if (!layer.neurons) {
@@ -34,10 +35,10 @@ TDLayer createTDLayer(unsigned int id, const char* name, LAYER_TYPE layer_type,
 
 //#pragma omp parallel for
 	for (int i = 0; i < neuronsCount; ++i) {
-		layer.neurons[i] = createTDNeuron(act_type, kernel_shape, time_offsets, offsets_size, height_out);		
+		layer.neurons[i] = createTDNeuron(actType, kernelShape, timeOffsets, offsetsSize, heightOut, actBeforeNorm);
 	}
 
-	unsigned int inputFramesSize = (time_offsets[offsets_size - 1] - time_offsets[0] + 1) * layer.input_shape->c * layer.input_shape->h;
+	unsigned int inputFramesSize = (timeOffsets[offsetsSize - 1] - timeOffsets[0] + 1) * layer.inputShape->c * layer.inputShape->h;
 	layer.inputFramesSize = inputFramesSize;
 	layer.inputFrames = (float*)calloc(inputFramesSize, sizeof(float));
 	if (!layer.inputFrames) {
@@ -53,26 +54,30 @@ return:
 */
 static int layer_pushFrame(TDLayer *layer, float *input) {
 	int ret = 0;
-	unsigned int input_size = layer->input_shape->h * layer->input_shape->c;
-	int offset = layer->neurons[0].time_offsets[layer->neurons[0].kernel_shape->w - 1];
+	unsigned int input_size = layer->inputShape->h * layer->inputShape->c;
+	int offset = layer->neurons[0].timeOffsets[layer->neurons[0].kernelShape->w - 1];
 
-	if (0 == layer->curBufferFrameSize) {
-		for (unsigned int i = 0; i < layer->delay; ++i) {
-			memcpy(&layer->inputFrames[i * input_size],
-				input,
-				sizeof(float) * input_size);
-		}
-	}
+	//if (0 == layer->curBufferFrameSize) {
+ //		for (unsigned int i = 0; i < layer->delay; ++i) {
+	//		memcpy(&layer->inputFrames[i * input_size],
+	//			input,
+	//			sizeof(float) * input_size);
+	//	}
+	//}
 
-	//if (layer->curBufferFrameSize < offset + 1) {
-	if (layer->curBufferFrameSize < layer->delay) {
-		/*for (unsigned int i = 0; i < layer->delay - 1; ++i) {
+	/*if (layer->curBufferFrameSize < offset + 1) {
+		for (unsigned int i = 0; i < layer->delay - 1; ++i) {
 			memcpy(&layer->inputFrames[i * input_size],
 				&layer->inputFrames[(i + 1) * input_size],
 				sizeof(float) * input_size);
 		}
-		memcpy(&layer->inputFrames[(layer->delay - 1) * input_size], input, sizeof(float) * input_size);*/
+		memcpy(&layer->inputFrames[(layer->delay - 1) * input_size], input, sizeof(float) * input_size);
 
+		++layer->curBufferFrameSize;
+		if (layer->curBufferFrameSize < offset + 1)
+			ret = -1;
+	} else {*/
+	if (layer->curBufferFrameSize < layer->delay) {
 		// 加入新帧
 		memcpy(&layer->inputFrames[layer->curBufferFrameSize * input_size], input, sizeof(float) * input_size);
 		++layer->curBufferFrameSize;
@@ -93,57 +98,67 @@ static int layer_pushFrame(TDLayer *layer, float *input) {
 }
 
 // 根据timeoffsets下采样输入数据
-static float* sampleInput(const TDNeuron *neuron, const float *input, const TDShape *input_shape) {
-	unsigned one_input_size = input_shape->h * input_shape->c;
+static float* sampleInput(const TDNeuron *neuron, const float *input, const TDShape *inputShape) {
+	unsigned one_input_size = inputShape->h * inputShape->c;
 
-	float *sampled = (float*)malloc(sizeof(float) * neuron->kernel_shape->w * one_input_size);
+	float *sampled = (float*)malloc(sizeof(float) * neuron->kernelShape->w * one_input_size);
 	if (!sampled) {
 		printf("malloc fail! sampleInput ");
 		abort();
 	}
 
-	for (int i = 0; i < neuron->kernel_shape->w; ++i) {
-		int offset = neuron->time_offsets[i] - neuron->time_offsets[0];
+	for (int i = 0; i < neuron->kernelShape->w; ++i) {
+		int offset = neuron->timeOffsets[i] - neuron->timeOffsets[0];
 		memcpy(sampled + i * one_input_size, input + offset * one_input_size, sizeof(float) * one_input_size);
 	}
 
 	return sampled;
 }
 
-int layer_forward(TDLayer *layer, const float *input, float *output) {
+int layer_forward(TDLayer *layer, const float *input, float *output, const char *outputFilePath) {
 	// 输入帧数不足，不计算
 	if (-1 == layer_pushFrame(layer, input)) {
 		return -1;
 	}
 
-	unsigned int height_out = layer->neurons[0].height_out;
-	printf("\n\n input shape: { %d, %d, %d } \n", 1, layer->input_shape->h, layer->input_shape->c);
-	printf("output shape: { %d, %d, %d }", 1, height_out, layer->neuronsCount);
+	unsigned int heightOut = layer->neurons[0].heightOut;
+	printf("\n\n input shape: { %d, %d, %d } \n", 1, layer->inputShape->h, layer->inputShape->c);
+	printf("output shape: { %d, %d, %d }", 1, heightOut, layer->neuronsCount);
 	
-	float *sampledInput = sampleInput(&layer->neurons[0], layer->inputFrames, layer->input_shape);
+	float *sampledInput = sampleInput(&layer->neurons[0], layer->inputFrames, layer->inputShape);
 
 	for (unsigned int i = 0; i < layer->neuronsCount; ++i) {
-		neuron_forward(&layer->neurons[i], sampledInput, layer->input_shape);
+		neuron_forward(&layer->neurons[i], sampledInput, layer->inputShape);
 	}	
 
-	for (unsigned int j = 0; j < height_out; ++j) {
+	float sum = 0.f;
+	for (unsigned int j = 0; j < heightOut; ++j) {
 		for (unsigned int i = 0; i < layer->neuronsCount; ++i) {
 			output[j * layer->neuronsCount + i] = layer->neurons[i].activation[j];
+			sum += output[j * layer->neuronsCount + i] * output[j * layer->neuronsCount + i];
+		}
+	}
+	
+	if (layer->hasLN) {
+		float scale = powf(fmax(0.f, sum / (layer->neuronsCount * heightOut * layer->LNTargetRms * layer->LNTargetRms)), -0.5);
+		for (unsigned int j = 0; j < heightOut; ++j) {
+			for (unsigned int i = 0; i < layer->neuronsCount; ++i) {
+				output[j * layer->neuronsCount + i] = scale * output[j * layer->neuronsCount + i];
+			}
 		}
 	}
 
 	// logsoftmax
-	if (layer->has_logsoftmax) {
-		logsoftmax(output, layer->neuronsCount * height_out);
+	if (layer->hasLogsoftmax) {
+		logsoftmax(output, layer->neuronsCount * heightOut);
 	}
 
-	if (layer->is_output) {
-		const char* output_file = "../../../data/hounet/output.txt";
-		FILE *fp = fopen(output_file, "a+");
+	if (layer->isOutput) {
+		FILE *fp = fopen(outputFilePath, "a+");
 		int max_i = 0;
 		int max_v = output[0];
 
-		for (int i = 0; i < layer->neuronsCount * height_out; ++i) {
+		for (int i = 0; i < layer->neuronsCount * heightOut; ++i) {
 			if (max_v < output[i]) {
 				max_v = output[i];
 				max_i = i;
@@ -158,13 +173,13 @@ int layer_forward(TDLayer *layer, const float *input, float *output) {
 	return 0;
 }
 
-void load_weights(TDLayer * layer, const char *filePath) {
-	TDShape * shape = layer->neurons[0].kernel_shape;
+void load_weights(TDLayer *layer, const char *filePath) {
+	TDShape * shape = layer->neurons[0].kernelShape;
 	unsigned flatten = shape->w * shape->h * shape->c;
 	unsigned total = flatten * layer->neuronsCount;
 
 	float *linear_weights = (float*)malloc(sizeof(float) * total);
-	float *bias_weights = (float*)malloc(sizeof(float) * layer->neuronsCount);
+	float *bias_weights = (float*)calloc(layer->neuronsCount, sizeof(float));
 
 	parseWeights(filePath, layer->neuronsCount, linear_weights, bias_weights);
 
@@ -175,7 +190,7 @@ void load_weights(TDLayer * layer, const char *filePath) {
 	}
 }
 
-void addBN(TDLayer *layer, const char* filePath, unsigned dim, float epsilon, float gamma) {
+void addBN(TDLayer *layer, const char *filePath, unsigned dim, float epsilon, float gamma) {
 	FILE *fp = fopen(filePath, "r");
 	if (!fp) {
 		return;
@@ -219,6 +234,11 @@ void addBN(TDLayer *layer, const char* filePath, unsigned dim, float epsilon, fl
 	for (int i = 0; i < layer->neuronsCount; ++i) {
 		addNeuronBN(&layer->neurons[i], epsilon, gamma, means[i], vars[i]);
 	}
+}
+
+void addLayerNorm(TDLayer *layer, float targetRms) {
+	layer->hasLN = 1;
+	layer->LNTargetRms = targetRms;
 }
 
 

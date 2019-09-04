@@ -5,37 +5,40 @@
 #include <omp.h>
 #include "TDActivation.h"
 
-TDNeuron createTDNeuron(ACTIVATION_TYPE act_type, const TDShape *kernel_shape, 
-	const int *time_offsets, unsigned int offsets_size, unsigned int height_out) {
+TDNeuron createTDNeuron(ACTIVATION_TYPE actType, const TDShape *kernelShape, 
+	const int *timeOffsets, unsigned int offsetsSize, unsigned int heightOut,
+	_Bool actBeforeNorm) {
 	TDNeuron neuron;
-	neuron.kernel_shape = (TDShape*)malloc(sizeof(TDShape));
-	if (!neuron.kernel_shape) {
+	neuron.kernelShape = (TDShape*)malloc(sizeof(TDShape));
+	if (!neuron.kernelShape) {
 		exit(1);
 	}
 
-	memcpy(neuron.kernel_shape, kernel_shape, sizeof(TDShape));
-	neuron.height_out = height_out;
-	neuron.act_type = act_type;
-	neuron.activation = (float*)calloc(height_out, sizeof(float));
+	memcpy(neuron.kernelShape, kernelShape, sizeof(TDShape));
+	neuron.heightOut = heightOut;
+	neuron.actType = actType;
+	neuron.activation = (float*)calloc(heightOut, sizeof(float));
 	neuron.stride_h = 1;
 	neuron.bn = NULL;
+	neuron.norm_type = NONE_ACT;
+	neuron.actBeforeNorm = actBeforeNorm;
 
 	if (!neuron.activation) {
 		exit(1);
 	}
 
-	unsigned int kernel_flatten_size = kernel_shape->w * kernel_shape->h * kernel_shape->c;
+	unsigned int kernel_flatten_size = kernelShape->w * kernelShape->h * kernelShape->c;
 	neuron.weights = (float*)malloc(sizeof(float) * kernel_flatten_size);
 	if (!neuron.weights) {
 		exit(1);
 	}
 
-	neuron.time_offsets = (int*)malloc(sizeof(int) * offsets_size);
-	if (!neuron.time_offsets) {
+	neuron.timeOffsets = (int*)malloc(sizeof(int) * offsetsSize);
+	if (!neuron.timeOffsets) {
 		exit(1);
 	}
 
-	memcpy(neuron.time_offsets, time_offsets, sizeof(time_offsets[0]) * offsets_size);
+	memcpy(neuron.timeOffsets, timeOffsets, sizeof(timeOffsets[0]) * offsetsSize);
 	
 	return neuron;
 }
@@ -58,6 +61,7 @@ static float activate(ACTIVATION_TYPE type, float input) {
 }
 
 void addNeuronBN(TDNeuron * neuron, float epsilon, float gamma, float mean, float var) {
+	neuron->norm_type = BN;
 	neuron->bn = (TDNeuronBatchNorm*)malloc(sizeof(TDNeuronBatchNorm));
 	neuron->bn->epsilon = epsilon;
 	neuron->bn->gamma = gamma;
@@ -73,13 +77,27 @@ static float batchNormalize(TDNeuron *neuron, float input) {
 	return neuron->bn->scale * input + neuron->bn->offset;
 }
 
-void neuron_forward(TDNeuron *neuron, float *input, const TDShape *input_shape) {
-	float *output = getConv(input, input_shape, neuron->weights, neuron->kernel_shape, neuron->stride_h);
-	for (unsigned int i = 0; i < neuron->height_out; ++i) {
-		if(neuron->bn)
-			neuron->activation[i] = activate(neuron->act_type, batchNormalize(neuron, output[i] + neuron->bias));
+static float normalize(TDNeuron *neuron, float input) {
+	float output = input;
+
+	switch (neuron->norm_type) {
+	case BN:
+		output = batchNormalize(neuron, input);
+		break;	
+	default:
+		break;
+	}
+
+	return output;
+}
+
+void neuron_forward(TDNeuron *neuron, float *input, const TDShape *inputShape) {
+	float *output = getConv(input, inputShape, neuron->weights, neuron->kernelShape, neuron->stride_h);
+	for (unsigned int i = 0; i < neuron->heightOut; ++i) {
+		if (neuron->actBeforeNorm)
+			neuron->activation[i] = normalize(neuron, activate(neuron->actType, output[i] + neuron->bias));
 		else
-			neuron->activation[i] = activate(neuron->act_type, output[i] + neuron->bias);
+			neuron->activation[i] = activate(neuron->actType, normalize(neuron, output[i] + neuron->bias));
 	}
 }
 

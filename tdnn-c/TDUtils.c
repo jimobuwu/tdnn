@@ -5,26 +5,26 @@
 #include <math.h>
 #include <stdio.h>
 
-float* getConv(const float *input, const TDShape *input_shape,
-	const float *kernel, const TDShape *kernel_shape, unsigned int stride_h) {
+float* getConv(const float *input, const TDShape *inputShape,
+	const float *kernel, const TDShape *kernelShape, unsigned int stride_h) {
 
 	int out_w = 1;
-	int out_h = (input_shape->h - kernel_shape->h) / stride_h + 1;
+	int out_h = (inputShape->h - kernelShape->h) / stride_h + 1;
 		
-	const int conv_len = kernel_shape->w * kernel_shape->h * kernel_shape->c;
+	const int conv_len = kernelShape->w * kernelShape->h * kernelShape->c;
 	float* tmp = (float*)calloc(out_w * out_h * conv_len, sizeof(float));
 	if (!tmp) {
 		abort();
 	}
 
-	int input_w = input_shape->h * input_shape->c;
+	int input_w = inputShape->h * inputShape->c;
 	int index = 0;
 
 	// 权重按照 w,h,c 排列
 	for (int i = 0; i < out_h; ++i) {
-		for (int w = 0; w < kernel_shape->w; ++w) {
-			for (int h = 0; h < kernel_shape->h * kernel_shape->c; ++h) {
-				int start = i * kernel_shape->c + input_w * w;
+		for (int w = 0; w < kernelShape->w; ++w) {
+			for (int h = 0; h < kernelShape->h * kernelShape->c; ++h) {
+				int start = i * kernelShape->c + input_w * w;
 				tmp[index++] = input[start + h];
 			}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 		}
@@ -77,21 +77,21 @@ void parseWeights(const char *file, unsigned weights_rows, float *linear_weights
 		else if(line_num == weights_rows + 3) {
 			// biasParams
 			char *p = line, *end;
-			printf(" \n linear count : %d \n", count);
+			//printf(" \n linear count : %d \n", count);
 			count = 0;
 			for (float f = strtof(p, &end); p != end; f = strtof(p, &end)) {
 				p = end;
 				bias_weights[count] = f;
 				++count;
 			}
-			printf("bias count : %d", count);
+			//printf("bias count : %d", count);
 		}
 
 		++line_num;
 	}
 	
-	printf("\nfirst linear weights: %f", linear_weights[0]);
-	printf("\nfirst bias weights: %f", bias_weights[0]);
+	//printf("\nfirst linear weights: %f", linear_weights[0]);
+	//printf("\nfirst bias weights: %f", bias_weights[0]);
 
 	fclose(fp);
 }

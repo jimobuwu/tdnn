@@ -34,24 +34,23 @@ void forward(TDNet * net, float * input, FILE *fp){
 	// 前向
 	for (int i = 0; i < net->layersCount; ++i) {
 		TDLayer *layer = &net->layers[i];
-		unsigned output_size = layer->neuronsCount * layer->neurons[0].height_out;
+		unsigned output_size = layer->neuronsCount * layer->neurons[0].heightOut;
 		float *activation = (float*)malloc(sizeof(float) * output_size);
 		if (!activation) {
 			fprintf(stderr, "in forward propagation, layer %d malloc activation fail!", i);
 			exit(1);
 		}
 
-		if( -1 == layer_forward(layer, passData, activation)) {
+		if( -1 == layer_forward(layer, passData, activation, net->outputFilePath)) {
 			// 延迟帧数不足时，继续接收输入数据
 			break;
-		}
+		}              
 
 		fprintf(fp, "\nlayer %d activations: \n", i);
 		for (int m = 0; m < output_size; ++m) {
-			if (0 == m % layer->neurons[0].height_out) {
+			/*if (0 == m % layer->neurons[0].heightOut) {
 				fprintf(fp, "\n");
-			}
-
+			}*/
 			fprintf(fp, "%f ", activation[m]);
 		}
 		fprintf(fp, "\n\n");
@@ -71,24 +70,7 @@ void forward(TDNet * net, float * input, FILE *fp){
 	SAFEFREE(passData);
 }
 
-//static void afterHandle(TDNet *net) {
-//	// 最后一帧结束后处理
-//	for (int i = 0; i < net->layersCount; ++i) {
-//		TDLayer *layer = &net->layers[i];
-//		int offset = layer->neurons[0].time_offsets[layer->neurons[0].kernel_shape->w - 1];
-//		unsigned inputSize = sizeof(float) * layer->input_shape->c * layer->input_shape->h;
-//		float *lastFrame = (float*)malloc(inputSize);
-//
-//		if (layer->curBufferFrameSize == offset) {
-//			memcpy(lastFrame, &layer->inputFrames[layer->delay - 1], inputSize);
-//		}
-//		else { /* layer->curBufferFrameSize < offset, 帧数不足*/
-//			memcpy(lastFrame, &layer->inputFrames[layer->curBufferFrameSize - 1], inputSize);
-//		}
-//	}
-//}
-
-void parseInputFile(const char * file, TDNet *net) {
+void parseInputFile(const char *file, TDNet *net) {
 	FILE * fp = fopen(file, "r");
 	if (!fp) {
 		return;
@@ -99,8 +81,10 @@ void parseInputFile(const char * file, TDNet *net) {
 	int count = 0;
 	float *one_frame = (float*)calloc(net->input_dim, sizeof(float));
 
-	const char* output_file = "../../../data/hounet/mid-output.txt";
-	FILE *ouput_fp = fopen(output_file, "w");
+	FILE *ouput_fp = fopen(net->midOutputFilePath, "w");
+	if (!ouput_fp) {
+		return;
+	}
 
 	while (!feof(fp)) {
 		fgets(line, LINE_BUF_SIZE, fp);
@@ -118,15 +102,9 @@ void parseInputFile(const char * file, TDNet *net) {
 
 		// 输入一帧数据，前向
 		forward(net, one_frame, ouput_fp);
-		printf("\n one frame input count: %d", count);
+		//printf("\n one frame input count: %d", count);
 	}
-	printf("\n input count: %d", count);
-
-	// 再输入offset个最后一帧
-	/*int offset = net->layers[0].neurons[0].time_offsets[net->layers[0].neurons[0].kernel_shape->w - 1];
-	for (int i = 0; i < offset; ++i) {
-		forward(net, one_frame, ouput_fp);
-	}*/
+	//printf("\n input count: %d", count);
 
 	fclose(fp);
 	fclose(ouput_fp);

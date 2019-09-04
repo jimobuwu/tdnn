@@ -8,7 +8,7 @@
 typedef enum {
 	DENSE,
 	CONV
-}LAYER_TYPE;
+}layerType;
 
 typedef enum {
 	SAME,
@@ -21,5 +21,12 @@ typedef enum {
 	SIGMOID,
 	SOFTMAX
 } ACTIVATION_TYPE;
+
+typedef enum {
+	NONE_NORM,
+	BN,
+	NORM	
+} NORM_TYPE;
+
 
 #endif
