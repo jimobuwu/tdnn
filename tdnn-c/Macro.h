@@ -28,5 +28,4 @@ typedef enum {
 	NORM	
 } NORM_TYPE;
 
-
 #endif

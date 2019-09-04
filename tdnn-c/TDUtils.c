@@ -77,21 +77,16 @@ void parseWeights(const char *file, unsigned weights_rows, float *linear_weights
 		else if(line_num == weights_rows + 3) {
 			// biasParams
 			char *p = line, *end;
-			//printf(" \n linear count : %d \n", count);
 			count = 0;
 			for (float f = strtof(p, &end); p != end; f = strtof(p, &end)) {
 				p = end;
 				bias_weights[count] = f;
 				++count;
 			}
-			//printf("bias count : %d", count);
 		}
 
 		++line_num;
 	}
-	
-	//printf("\nfirst linear weights: %f", linear_weights[0]);
-	//printf("\nfirst bias weights: %f", bias_weights[0]);
 
 	fclose(fp);
 }
