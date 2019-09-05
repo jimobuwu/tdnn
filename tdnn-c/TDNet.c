@@ -11,6 +11,9 @@ TDNet createTDNet(unsigned layersCount) {
 	TDNet net;
 	net.layersCount = layersCount;
 	net.layers = (TDLayer*)malloc(sizeof(TDLayer) * layersCount);
+	if (!net.layers) {
+		exit(1);
+	}
 
 	return net;
 }
@@ -22,7 +25,6 @@ void addTDLayer(TDNet *net, const TDLayer *layer) {
 // input, 一帧数据
 void forward(TDNet * net, float * input, FILE *fp){
 	++frame_input_num;
-	printf("\n input frame num: %d", frame_input_num);
 
 	float *passData = (float*)malloc(sizeof(float) * net->input_dim);
 	if (!passData) {
@@ -66,7 +68,6 @@ void forward(TDNet * net, float * input, FILE *fp){
 		SAFEFREE(activation);
 	}
 
-
 	SAFEFREE(passData);
 }
 
@@ -88,24 +89,48 @@ void parseInputFile(const char *file, TDNet *net) {
 
 	while (!feof(fp)) {
 		fgets(line, LINE_BUF_SIZE, fp);
-		printf("\n input line : ", line);
+		//printf("\n input line : ", line);
 		printf("\n");
 
 		count = 0;
 		char *p = line, *end;
 		for (float f = strtof(p, &end); p != end; f = strtof(p, &end)) {
 			p = end;
-			printf("%f ", f);
+			//printf("%f ", f);
 			one_frame[count] = f;
 			++count;
 		}	
 
 		// 输入一帧数据，前向
 		forward(net, one_frame, ouput_fp);
-		//printf("\n one frame input count: %d", count);
 	}
-	//printf("\n input count: %d", count);
 
 	fclose(fp);
 	fclose(ouput_fp);
+}
+
+void computeBytes(TDNet * net)
+{
+	unsigned weights_sum = 0u;
+	unsigned frame_sum = 0;
+	unsigned fm_sum = 0;
+
+	for (int i = 0; i < net->layersCount; ++i) {
+		TDLayer *layer = &net->layers[i];
+		TDNeuron *neuron = &layer->neurons[0];
+		unsigned layerWeightsSum = layer->neuronsCount * neuron->kernelShape->w * neuron->kernelShape->h * neuron->kernelShape->c;
+		printf("layer: %d weights bytes:%d\n", layer->id, layerWeightsSum * sizeof(float));
+		weights_sum += layerWeightsSum;
+
+		printf("layer: %d frame buffer bytes:%d\n", layer->id, layer->inputFramesSize * sizeof(float));
+		frame_sum += layer->inputFramesSize * sizeof(float);
+
+		printf("layer: %d feature map bytes:%d\n", layer->id, layer->neuronsCount * neuron->heightOut * sizeof(float));
+		fm_sum += layer->neuronsCount * neuron->heightOut * sizeof(float);
+	}
+
+	printf("total weights bytes: %d\n", weights_sum);
+	printf("total frame buffer bytes: %d\n", frame_sum);
+	printf("total feature map bytes: %d\n", fm_sum);
+	printf("total bytes: %d\n", weights_sum + frame_sum + fm_sum);
 }

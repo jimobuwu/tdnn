@@ -9,7 +9,6 @@
 // hounet
 static TDNet createHouNet() {
 	TDNet net = createTDNet(7);
-
 	net.input_dim = 78;
 
 	// conv1
@@ -17,11 +16,6 @@ static TDNet createHouNet() {
 	TDShape inputShape1 = {1, 26, 3};
 	int timeOffsets1[8] = { -4, -3, -2, -1, 0, 1, 2, 3 };
 
-	/*TDShape kernelShape1 = { 5, 18, 3 };
-	TDShape inputShape1 = {1, 26, 3};
-	int timeOffsets1[5] = { -2, -1, 0, 1, 2};*/
-
-	//TDLayer l1 = createTDLayer(0, "cnn1.conv", CONV, NONE_ACT, 1, &kernelShape1, timeOffsets1, 5, &inputShape1, 9, 0);
 	TDLayer l1 = createTDLayer(0, "cnn1.conv", CONV, RELU, 128, &kernelShape1, timeOffsets1, 8, &inputShape1, 9, 0, 0);
 	load_weights(&l1, "../../../data/hounet/cnn1.conv.txt");
 	addBN(&l1, "../../../data/hounet/cnn1.batchnorm.txt", 128, 0.001, 1.f);
@@ -32,11 +26,6 @@ static TDNet createHouNet() {
 	TDShape inputShape2 = { 1, 9, 128 };
 	int timeOffsets2[4] = { -2, -1, 0, 1};
 
-	////TDShape kernelShape2 = { 4, 3, 1 };
-	//TDShape inputShape2 = { 1, 9, 1 };
-	//int timeOffsets2[4] = { -2, -1, 0, 1 };
-
-	//TDLayer l2 = createTDLayer(1, "cnn2.conv", CONV, NONE_ACT, 1, &kernelShape2, timeOffsets2, 4, &inputShape2, 7, 0);
 	TDLayer l2 = createTDLayer(1, "cnn2.conv", CONV, RELU, 64, &kernelShape2, timeOffsets2, 4, &inputShape2, 7, 0, 0);
 	load_weights(&l2, "../../../data/hounet/cnn2.conv.txt");
 	addBN(&l2, "../../../data/hounet/cnn2.batchnorm.txt", 64, 0.001, 1.f);
@@ -76,15 +65,10 @@ static TDNet createHouNet() {
 	addTDLayer(&net, &l6);
 
 	// final Affine
-	/*TDShape kernelShape6 = { 1, 512, 1 };
-	TDShape inputShape6 = { 1, 512, 1 };
-	int timeOffsets6[1] = { 0 };*/
 	TDLayer l7 = createTDLayer(6, "Final_affine", DENSE, NONE_ACT, 67, &kernelShape6, timeOffsets6, 1, &inputShape6, 1, 1, 0);
 	load_weights(&l7, "../../../data/hounet/Final_affine.txt");
 	l7.isOutput = 1;
 	addTDLayer(&net, &l7);
-
-	// softmax
 
 	return net;
 }
@@ -262,15 +246,17 @@ int main() {
 	//net.midOutputFilePath = "../../../data/hounet/mid-output.txt";
 	//parseInputFile("../../../data/hounet/input.txt", &net);
 	
-	/*TDNet net = create11000Net();
+	TDNet net = create11000Net();	
 	net.outputFilePath = "../../../data/11000net/output.txt";
 	net.midOutputFilePath = "../../../data/11000net/mid-output.txt";
-	parseInputFile("../../../data/11000net/feats_01.txt", &net);*/
+	parseInputFile("../../../data/11000net/feats_01.txt", &net);
 
-	TDNet net = createKwsNet();
-	net.outputFilePath = "../../../data/kws/output.txt";
-	net.midOutputFilePath = "../../../data/kws/mid-output.txt";
-	parseInputFile("../../../data/kws/input_kws.txt", &net); 
+	//TDNet net = createKwsNet();
+	//net.outputFilePath = "../../../data/kws/output.txt";
+	//net.midOutputFilePath = "../../../data/kws/mid-output.txt";
+	//parseInputFile("../../../data/kws/input_kws.txt", &net); 
+
+	computeBytes(&net);
 
 	return 0;
 }

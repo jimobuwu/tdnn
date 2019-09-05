@@ -33,12 +33,11 @@ TDLayer createTDLayer(unsigned int id, const char *name, layerType layerType,
 		exit(1);
 	}
 
-//#pragma omp parallel for
 	for (int i = 0; i < neuronsCount; ++i) {
 		layer.neurons[i] = createTDNeuron(actType, kernelShape, timeOffsets, offsetsSize, heightOut, actBeforeNorm);
 	}
 
-	unsigned int inputFramesSize = (timeOffsets[offsetsSize - 1] - timeOffsets[0] + 1) * layer.inputShape->c * layer.inputShape->h;
+	unsigned int inputFramesSize = layer.delay * layer.inputShape->c * layer.inputShape->h;
 	layer.inputFramesSize = inputFramesSize;
 	layer.inputFrames = (float*)calloc(inputFramesSize, sizeof(float));
 	if (!layer.inputFrames) {
@@ -55,28 +54,7 @@ return:
 static int layer_pushFrame(TDLayer *layer, float *input) {
 	int ret = 0;
 	unsigned int input_size = layer->inputShape->h * layer->inputShape->c;
-	int offset = layer->neurons[0].timeOffsets[layer->neurons[0].kernelShape->w - 1];
 
-	//if (0 == layer->curBufferFrameSize) {
- //		for (unsigned int i = 0; i < layer->delay; ++i) {
-	//		memcpy(&layer->inputFrames[i * input_size],
-	//			input,
-	//			sizeof(float) * input_size);
-	//	}
-	//}
-
-	/*if (layer->curBufferFrameSize < offset + 1) {
-		for (unsigned int i = 0; i < layer->delay - 1; ++i) {
-			memcpy(&layer->inputFrames[i * input_size],
-				&layer->inputFrames[(i + 1) * input_size],
-				sizeof(float) * input_size);
-		}
-		memcpy(&layer->inputFrames[(layer->delay - 1) * input_size], input, sizeof(float) * input_size);
-
-		++layer->curBufferFrameSize;
-		if (layer->curBufferFrameSize < offset + 1)
-			ret = -1;
-	} else {*/
 	if (layer->curBufferFrameSize < layer->delay) {
 		// ¼ÓÈëÐÂÖ¡
 		memcpy(&layer->inputFrames[layer->curBufferFrameSize * input_size], input, sizeof(float) * input_size);
@@ -122,10 +100,12 @@ int layer_forward(TDLayer *layer, const float *input, float *output, const char 
 	}
 
 	unsigned int heightOut = layer->neurons[0].heightOut;
-	printf("\n\n input shape: { %d, %d, %d } \n", 1, layer->inputShape->h, layer->inputShape->c);
-	printf("output shape: { %d, %d, %d }", 1, heightOut, layer->neuronsCount);
-	
 	float *sampledInput = sampleInput(&layer->neurons[0], layer->inputFrames, layer->inputShape);
+
+	TDShape *kShape = layer->neurons[0].kernelShape;
+	int out_w = 1;
+	int out_h = (layer->inputShape->h - kShape->h) / layer->neurons[0].stride_h + 1;
+	const int conv_len = kShape->w * kShape->h * kShape->c;
 
 	for (unsigned int i = 0; i < layer->neuronsCount; ++i) {
 		neuron_forward(&layer->neurons[i], sampledInput, layer->inputShape);
@@ -153,6 +133,7 @@ int layer_forward(TDLayer *layer, const float *input, float *output, const char 
 		logsoftmax(output, layer->neuronsCount * heightOut);
 	}
 
+	// write output to file
 	if (layer->isOutput) {
 		FILE *fp = fopen(outputFilePath, "a+");
 		int max_i = 0;
@@ -180,6 +161,7 @@ void load_weights(TDLayer *layer, const char *filePath) {
 
 	float *linear_weights = (float*)malloc(sizeof(float) * total);
 	float *bias_weights = (float*)calloc(layer->neuronsCount, sizeof(float));
+	printf("layer %d load weights tmp buffer bytes: %d\n", layer->id, total * sizeof(float));
 
 	parseWeights(filePath, layer->neuronsCount, linear_weights, bias_weights);
 
@@ -188,6 +170,9 @@ void load_weights(TDLayer *layer, const char *filePath) {
 		memcpy(layer->neurons[i].weights, linear_weights + index, sizeof(float) * flatten);
 		layer->neurons[i].bias = bias_weights[i];
 	}
+
+	SAFEFREE(linear_weights);
+	SAFEFREE(bias_weights);
 }
 
 void addBN(TDLayer *layer, const char *filePath, unsigned dim, float epsilon, float gamma) {
@@ -207,23 +192,23 @@ void addBN(TDLayer *layer, const char *filePath, unsigned dim, float epsilon, fl
 		fgets(line, LINE_BUF_SIZE, fp);
 
 		if (1 == lineNum) {
-			printf("\naddBN mean:\n");
+			//printf("\naddBN mean:\n");
 			char *p = line, *end;
 			for (float f = strtof(p, &end); p != end; f = strtof(p, &end)) {
 				p = end;
 				means[weights_count] = f;
-				printf("%f ", f);
+				//printf("%f ", f);
 				++weights_count;
 			}
 		}
 		else if (4 == lineNum) {
 			weights_count = 0;
-			printf("\naddBN vars:\n");
+			//printf("\naddBN vars:\n");
 			char *p = line, *end;
 			for (float f = strtof(p, &end); p != end; f = strtof(p, &end)) {
 				p = end;
 				vars[weights_count] = f;
-				printf("%f ", f);
+				//printf("%f ", f);
 				++weights_count;
 			}
 		}
@@ -234,6 +219,9 @@ void addBN(TDLayer *layer, const char *filePath, unsigned dim, float epsilon, fl
 	for (int i = 0; i < layer->neuronsCount; ++i) {
 		addNeuronBN(&layer->neurons[i], epsilon, gamma, means[i], vars[i]);
 	}
+
+	SAFEFREE(means);
+	SAFEFREE(vars);
 }
 
 void addLayerNorm(TDLayer *layer, float targetRms) {

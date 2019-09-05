@@ -10,9 +10,9 @@ float* getConv(const float *input, const TDShape *inputShape,
 
 	int out_w = 1;
 	int out_h = (inputShape->h - kernelShape->h) / stride_h + 1;
-		
 	const int conv_len = kernelShape->w * kernelShape->h * kernelShape->c;
-	float* tmp = (float*)calloc(out_w * out_h * conv_len, sizeof(float));
+
+	float *tmp = (float*)calloc(out_w * out_h * conv_len, sizeof(float));
 	if (!tmp) {
 		abort();
 	}
@@ -29,8 +29,8 @@ float* getConv(const float *input, const TDShape *inputShape,
 			}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 		}
 	}
-
-	float* out = (float*)malloc(sizeof(float) * out_w * out_h);
+	
+	float *out = (float*)malloc(sizeof(float) * out_w * out_h);
 	if (!out) {
 		printf("malloc fail! getConv out ");
 		abort();
@@ -48,6 +48,8 @@ float* getConv(const float *input, const TDShape *inputShape,
 		}
 	}
 	   
+	SAFEFREE(tmp);
+
 	return out;
 }
 
@@ -75,7 +77,7 @@ void parseWeights(const char *file, unsigned weights_rows, float *linear_weights
 			}
 		}
 		else if(line_num == weights_rows + 3) {
-			// biasParams
+			// biasParams (LinearComponent²»´æÔÚbias)
 			char *p = line, *end;
 			count = 0;
 			for (float f = strtof(p, &end); p != end; f = strtof(p, &end)) {
@@ -84,7 +86,6 @@ void parseWeights(const char *file, unsigned weights_rows, float *linear_weights
 				++count;
 			}
 		}
-
 		++line_num;
 	}
 
