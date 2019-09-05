@@ -44,6 +44,7 @@ TDLayer createTDLayer(unsigned int id, const char *name, layerType layerType,
 		exit(1);
 	}
 
+	//printf("layer %d feature map buffer bytes: %d\n", id, heightOut * layer.neuronsCount * sizeof(float));
 	return layer;
 }
 
@@ -107,15 +108,14 @@ int layer_forward(TDLayer *layer, const float *input, float *output, const char 
 	int out_h = (layer->inputShape->h - kShape->h) / layer->neurons[0].stride_h + 1;
 	const int conv_len = kShape->w * kShape->h * kShape->c;
 
-	for (unsigned int i = 0; i < layer->neuronsCount; ++i) {
-		neuron_forward(&layer->neurons[i], sampledInput, layer->inputShape);
-	}	
-
 	float sum = 0.f;
+	float *pNeuronOutput = NULL;
 	for (unsigned int j = 0; j < heightOut; ++j) {
 		for (unsigned int i = 0; i < layer->neuronsCount; ++i) {
-			output[j * layer->neuronsCount + i] = layer->neurons[i].activation[j];
+			pNeuronOutput = neuron_forward(&layer->neurons[i], sampledInput, layer->inputShape);
+			output[j * layer->neuronsCount + i] = pNeuronOutput[j];
 			sum += output[j * layer->neuronsCount + i] * output[j * layer->neuronsCount + i];
+			SAFEFREE(pNeuronOutput);
 		}
 	}
 	
@@ -161,7 +161,7 @@ void load_weights(TDLayer *layer, const char *filePath) {
 
 	float *linear_weights = (float*)malloc(sizeof(float) * total);
 	float *bias_weights = (float*)calloc(layer->neuronsCount, sizeof(float));
-	printf("layer %d load weights tmp buffer bytes: %d\n", layer->id, total * sizeof(float));
+	//printf("layer %d load weights tmp buffer bytes: %d\n", layer->id, total * sizeof(float));
 
 	parseWeights(filePath, layer->neuronsCount, linear_weights, bias_weights);
 

@@ -90,7 +90,7 @@ void parseInputFile(const char *file, TDNet *net) {
 	while (!feof(fp)) {
 		fgets(line, LINE_BUF_SIZE, fp);
 		//printf("\n input line : ", line);
-		printf("\n");
+		//printf("\n");
 
 		count = 0;
 		char *p = line, *end;
@@ -120,17 +120,13 @@ void computeBytes(TDNet * net)
 		TDNeuron *neuron = &layer->neurons[0];
 		unsigned layerWeightsSum = layer->neuronsCount * neuron->kernelShape->w * neuron->kernelShape->h * neuron->kernelShape->c;
 		printf("layer: %d weights bytes:%d\n", layer->id, layerWeightsSum * sizeof(float));
-		weights_sum += layerWeightsSum;
+		weights_sum += layerWeightsSum * sizeof(float);
 
 		printf("layer: %d frame buffer bytes:%d\n", layer->id, layer->inputFramesSize * sizeof(float));
 		frame_sum += layer->inputFramesSize * sizeof(float);
-
-		printf("layer: %d feature map bytes:%d\n", layer->id, layer->neuronsCount * neuron->heightOut * sizeof(float));
-		fm_sum += layer->neuronsCount * neuron->heightOut * sizeof(float);
 	}
 
 	printf("total weights bytes: %d\n", weights_sum);
 	printf("total frame buffer bytes: %d\n", frame_sum);
-	printf("total feature map bytes: %d\n", fm_sum);
-	printf("total bytes: %d\n", weights_sum + frame_sum + fm_sum);
+	printf("total bytes: %d\n", weights_sum + frame_sum);
 }

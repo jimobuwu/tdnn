@@ -17,15 +17,10 @@ TDNeuron createTDNeuron(ACTIVATION_TYPE actType, const TDShape *kernelShape,
 	memcpy(neuron.kernelShape, kernelShape, sizeof(TDShape));
 	neuron.heightOut = heightOut;
 	neuron.actType = actType;
-	neuron.activation = (float*)calloc(heightOut, sizeof(float));
 	neuron.stride_h = 1;
 	neuron.bn = NULL;
 	neuron.norm_type = NONE_ACT;
 	neuron.actBeforeNorm = actBeforeNorm;
-
-	if (!neuron.activation) {
-		exit(1);
-	}
 
 	unsigned int kernel_flatten_size = kernelShape->w * kernelShape->h * kernelShape->c;
 	neuron.weights = (float*)malloc(sizeof(float) * kernel_flatten_size);
@@ -91,13 +86,15 @@ static float normalize(TDNeuron *neuron, float input) {
 	return output;
 }
 
-void neuron_forward(TDNeuron *neuron, float *input, const TDShape *inputShape) {
+float* neuron_forward(TDNeuron *neuron, float *input, const TDShape *inputShape) {
 	float *output = getConv(input, inputShape, neuron->weights, neuron->kernelShape, neuron->stride_h);
 	for (unsigned int i = 0; i < neuron->heightOut; ++i) {
 		if (neuron->actBeforeNorm)
-			neuron->activation[i] = normalize(neuron, activate(neuron->actType, output[i] + neuron->bias));
+			output[i] = normalize(neuron, activate(neuron->actType, output[i] + neuron->bias));
 		else
-			neuron->activation[i] = activate(neuron->actType, normalize(neuron, output[i] + neuron->bias));
+			output[i] = activate(neuron->actType, normalize(neuron, output[i] + neuron->bias));
 	}
+
+	return output;
 }
 

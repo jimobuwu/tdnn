@@ -22,7 +22,6 @@ typedef struct {
 	float bias;						// 偏移量
 	TDShape* kernelShape;			// 卷积核的尺寸	
 	unsigned int stride_h;			// 高度方向的步长
-	float *activation;				// 激活值，由于h方向上有卷积，激活值是二维数组
 	unsigned int heightOut;	    // 输出的高度
 	int* timeOffsets;				// 选取的上一层输入的偏移量
 	ACTIVATION_TYPE actType;		// 激活函数类型
@@ -39,7 +38,7 @@ TDNeuron createTDNeuron(
 	unsigned int offsetsSize, 
 	unsigned int heightOut,
 	_Bool actBeforeNorm);
-void neuron_forward(TDNeuron* neuron, float* input, const TDShape *inputShape);
+float* neuron_forward(TDNeuron* neuron, float* input, const TDShape *inputShape);
 void addNeuronBN(TDNeuron * neuron, float epsilon, float gamma, float mean, float var);
 
 #endif /* TDNEURON_H_ */

@@ -16,6 +16,6 @@ TDNet createTDNet(unsigned layersCount);
 void addTDLayer(TDNet *net, const TDLayer *layer);
 void forward(TDNet *net, float *input, FILE *fp);
 void parseInputFile(const char*file, TDNet *net);
-unsigned computeWeights(TDNet *net);
+void computeBytes(TDNet *net);
 
 #endif  /* TDNET_H_ */
