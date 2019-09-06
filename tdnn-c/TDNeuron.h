@@ -14,10 +14,6 @@ typedef struct {
 } TDNeuronBatchNorm;
 
 typedef struct {
-
-} TDNeuronNorm;
-
-typedef struct {
 	float *weights;					// 连接的权重参数
 	float bias;						// 偏移量
 	TDShape* kernelShape;			// 卷积核的尺寸	
