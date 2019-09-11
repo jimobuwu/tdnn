@@ -7,7 +7,9 @@
 typedef struct {	
 	TDLayer *layers;					// 层数据
 	unsigned layersCount;				// 网络层数	
-	unsigned input_dim;					// 一帧输入数据的维度
+	unsigned inputDim;					// 一帧输入数据的维度
+	int minOffset;						// 整个网络的最小偏移量
+	int maxOffset;						// 整个网络的最大偏移量
 	char* outputFilePath;
 	char* midOutputFilePath;
 } TDNet;

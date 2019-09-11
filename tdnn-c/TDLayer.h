@@ -4,6 +4,7 @@
 #include "TDNeuron.h"
 #include "Macro.h"
 #include "TDUtils.h"
+#include <stdio.h>
 
 typedef struct {
 	unsigned int id;					// ²ãÊý	
@@ -37,7 +38,7 @@ TDLayer createTDLayer(
 	_Bool hasLogsoftmax,
 	_Bool actBeforeNorm);
 
-int layer_forward(TDLayer *layer, const float *input, float *output, const char *outputFilePath);
+int layer_forward(TDLayer *layer, const float *input, float *output, const char *outputFilePath, FILE* fp);
 void load_weights(TDLayer *layer, const char *filePath);
 void addBN(TDLayer *layer, const char* filePath, unsigned dim, float epsilon, float gamma);
 void addLayerNorm(TDLayer *layer, float targetRms);

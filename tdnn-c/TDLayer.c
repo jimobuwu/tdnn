@@ -71,6 +71,7 @@ static int layer_pushFrame(TDLayer *layer, float *input) {
 		}
 		// 加入新帧
 		memcpy(&layer->inputFrames[(layer->delay - 1) * input_size], input, sizeof(float) * input_size);
+
 	}
 
 	return ret;
@@ -94,7 +95,7 @@ static float* sampleInput(const TDNeuron *neuron, const float *input, const TDSh
 	return sampled;
 }
 
-int layer_forward(TDLayer *layer, const float *input, float *output, const char *outputFilePath) {
+int layer_forward(TDLayer *layer, const float *input, float *output, const char *outputFilePath, FILE* fp) {
 	// 输入帧数不足，不计算
 	if (-1 == layer_pushFrame(layer, input)) {
 		return -1;
@@ -103,10 +104,19 @@ int layer_forward(TDLayer *layer, const float *input, float *output, const char 
 	unsigned int heightOut = layer->neurons[0].heightOut;
 	float *sampledInput = sampleInput(&layer->neurons[0], layer->inputFrames, layer->inputShape);
 
-	TDShape *kShape = layer->neurons[0].kernelShape;
-	int out_w = 1;
-	int out_h = (layer->inputShape->h - kShape->h) / layer->neurons[0].stride_h + 1;
-	const int conv_len = kShape->w * kShape->h * kShape->c;
+	unsigned output_size = layer->inputShape->c * layer->inputShape->h;
+	fprintf(fp, "\nlayer %d inputs: \n", layer->id);
+	for (int w = 0; w < layer->neurons[0].kernelShape->w; ++w) {
+		for(int m = 0; m < output_size; ++m) {
+			fprintf(fp, "%f ", sampledInput[w * output_size + m]);
+		}
+	}
+	fprintf(fp, "\n\n");
+
+	//TDShape *kShape = layer->neurons[0].kernelShape;
+	//int out_w = 1;
+	//int out_h = (layer->inputShape->h - kShape->h) / layer->neurons[0].stride_h + 1;
+	//const int conv_len = kShape->w * kShape->h * kShape->c;
 
 	float sum = 0.f;
 	float *pNeuronOutput = NULL;

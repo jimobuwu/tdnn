@@ -18,7 +18,7 @@ typedef struct {
 	float bias;						// 偏移量
 	TDShape* kernelShape;			// 卷积核的尺寸	
 	unsigned int stride_h;			// 高度方向的步长
-	unsigned int heightOut;	    // 输出的高度
+	unsigned int heightOut;			// 输出的高度
 	int* timeOffsets;				// 选取的上一层输入的偏移量
 	ACTIVATION_TYPE actType;		// 激活函数类型
 	TDNeuronBatchNorm *bn;			// BN参数

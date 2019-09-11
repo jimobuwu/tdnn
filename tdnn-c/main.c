@@ -5,11 +5,12 @@
 #include <sys/time.h>
 #include <stdint.h>
 #include <omp.h>
+#include <python3.6/Python.h>
 
 // hounet
 static TDNet createHouNet() {
 	TDNet net = createTDNet(7);
-	net.input_dim = 78;
+	net.inputDim = 78;
 
 	// conv1
 	TDShape kernelShape1 = { 8, 18, 3 };
@@ -43,7 +44,7 @@ static TDNet createHouNet() {
 	// Affine1
 	TDShape kernelShape4 = { 3, 5, 64 };
 	TDShape inputShape4 = { 1, 5, 64 };
-	int timeOffsets4[4] = { -1, 0, 1 };
+	int timeOffsets4[3] = { -1, 0, 1 };
 	TDLayer l4 = createTDLayer(3, "Affine1", DENSE, RELU, 512, &kernelShape4, timeOffsets4, 3, &inputShape4, 1, 0, 0);
 	load_weights(&l4, "../../../data/hounet/Affine1.txt");
 	addTDLayer(&net, &l4);
@@ -76,7 +77,7 @@ static TDNet createHouNet() {
 // 11000net
 static TDNet create11000Net() {
 	TDNet net = createTDNet(8);
-	net.input_dim = 50;
+	net.inputDim = 50;
 
 	// dense 0
 	TDShape kernelShape0 = { 5, 50, 1 };
@@ -150,7 +151,7 @@ static TDNet create11000Net() {
 // kwsnet
 static TDNet createKwsNet() {
 	TDNet net = createTDNet(10);
-	net.input_dim = 40;
+	net.inputDim = 40;
 
 	// dense 0
 	TDShape kernelShape0 = { 5, 40, 1 };
@@ -246,17 +247,28 @@ int main() {
 	//net.midOutputFilePath = "../../../data/hounet/mid-output.txt";
 	//parseInputFile("../../../data/hounet/input.txt", &net);
 	
-	TDNet net = create11000Net();	
-	net.outputFilePath = "../../../data/11000net/output.txt";
-	net.midOutputFilePath = "../../../data/11000net/mid-output.txt";
-	parseInputFile("../../../data/11000net/feats_01.txt", &net);
+	//TDNet net = create11000Net();	
+	//net.outputFilePath = "../../../data/11000net/output.txt";
+	//net.midOutputFilePath = "../../../data/11000net/mid-output.txt";
+	//parseInputFile("../../../data/11000net/feats_01.txt", &net);
 
-	//TDNet net = createKwsNet();
-	//net.outputFilePath = "../../../data/kws/output.txt";
-	//net.midOutputFilePath = "../../../data/kws/mid-output.txt";
-	//parseInputFile("../../../data/kws/input_kws.txt", &net); 
+	/*Py_Initialize();
+	if (!Py_isInitialized()) {
+		printf("python init failed!\n");
+		return -1;
+	}
 
-	computeBytes(&net);
+	PyRun_SimpleString("import numpy as np");*/
+
+
+	TDNet net = createKwsNet();
+	net.outputFilePath = "../../../data/kws/output.txt";
+	net.midOutputFilePath = "../../../data/kws/mid-output.txt";
+	parseInputFile("../../../data/kws/input_kws.txt", &net); 
+
+	// computeBytes(&net);
+
+	//Py_Finalize();
 
 	return 0;
 }

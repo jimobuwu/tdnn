@@ -48,7 +48,7 @@ float* getConv(const float *input, const TDShape *inputShape,
 		}
 	}
 	   
-	SAFEFREE(tmp);
+	SAFEFREE(tmp)
 
 	return out;
 }

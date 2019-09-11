@@ -99,6 +99,12 @@
     <ClCompile />
     <ClCompile />
     <ClCompile />
+    <Link />
+    <Link />
+    <ClCompile>
+      <AdditionalOptions>-L/usr/lib/ -Ipython3.6 </AdditionalOptions>
+    </ClCompile>
+    <Link />
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
